@@ -8,6 +8,7 @@ describe("extracted strings", () => {
     expect(extracted.length).toBeGreaterThan(900);
     expect(extracted).toContain("예상 성공");
     expect(extracted).toContain("계산하기");
+    expect(extracted.every((s) => s.length <= 200)).toBe(true);
   });
 });
 

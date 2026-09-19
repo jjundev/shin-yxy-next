@@ -16,10 +16,13 @@ const app = js.slice(appStart);
 const found = new Set();
 for (const m of app.matchAll(/`([^`]*[가-힣][^`]*)`/g)) {
   const s = m[1].replace(/\$\{[^}]*\}/g, "{}").trim();
+  // 한국어가 없는 리터럴에서 정규식이 어긋나면 리터럴 사이의 코드가 통째로 잡힌다. 그런 조각은 버린다.
+  if (s.length > 200 || /\(0,U\.jsx|=>|className:|\.map\(/.test(s)) continue;
   if (s) found.add(s);
 }
 for (const m of app.matchAll(/"([^"\\]*[가-힣][^"\\]*)"/g)) {
   const s = m[1].trim();
+  if (s.length > 200 || /\(0,U\.jsx|=>|className:|\.map\(/.test(s)) continue;
   if (s) found.add(s);
 }
 
