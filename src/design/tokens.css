@@ -1,0 +1,55 @@
+/* 스펙 2.4. 라이트 기본. 값은 원본 팔레트에서 채도를 낮추고 파랑 하나로 강조를 모았다. */
+:root {
+  --background: #ffffff;
+  --foreground: #14171c;
+  --card: #ffffff;
+  --card-foreground: #14171c;
+  --popover: #ffffff;
+  --popover-foreground: #14171c;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #14171c;
+  --muted: #f3f4f6;
+  --muted-foreground: #667085;
+  --accent: #eef4ff;
+  --accent-foreground: #1e40af;
+  --destructive: #b42318;
+  --border: #e3e6eb;
+  --input: #e3e6eb;
+  --ring: #2563eb;
+  --up: #c8352a;
+  --down: #2a4fb8;
+  --flat: #8a93a3;
+  --chart: #2563eb;
+  --chart-wash: rgb(37 99 235 / 0.12);
+  --radius: 8px;
+  --content-width: 720px;
+  --wide-width: 1200px;
+}
+
+.dark {
+  --background: #0b1117;
+  --foreground: #edf2f4;
+  --card: #111a24;
+  --card-foreground: #edf2f4;
+  --popover: #111a24;
+  --popover-foreground: #edf2f4;
+  --primary: #6ba1fa;
+  --primary-foreground: #0b1117;
+  --secondary: #172230;
+  --secondary-foreground: #edf2f4;
+  --muted: #172230;
+  --muted-foreground: #92a0b0;
+  --accent: #16263c;
+  --accent-foreground: #c7d7fd;
+  --destructive: #f08a80;
+  --border: #263241;
+  --input: #263241;
+  --ring: #6ba1fa;
+  --up: #f08a80;
+  --down: #8fbefc;
+  --flat: #7c8595;
+  --chart: #6ba1fa;
+  --chart-wash: rgb(107 161 250 / 0.16);
+}
