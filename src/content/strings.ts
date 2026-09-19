@@ -1,0 +1,23 @@
+export const strings = {
+  appName: "주식 길잡이 실험실",
+  nav: { lab: "실험실", saved: "저장소" },
+  demoBadge: "데모 · 데이터는 무작위",
+  demoBadgeHint: "저장한 실험은 새로고침하면 예시 세 개로 돌아갑니다.",
+  theme: { light: "라이트", dark: "다크", system: "시스템 설정" },
+  menu: { replayOnboarding: "첫 실험 다시 보기" },
+  login: { title: "실험실에 들어가기", enter: "데모로 들어가기" },
+  landing: {
+    promise: "과거의 어느 날로 돌아가, 그날 알 수 있던 것만으로 예측하고, 실제와 비교해 채점합니다.",
+    sub: "미래를 맞히는 도구가 아닙니다. 예측이 어떻게 만들어지고 어디서 틀리는지 배우는 실험실입니다.",
+    start: "첫 실험 시작하기",
+    toLab: "실험실로",
+  },
+  toast: { unknownRoute: "그 화면은 이 목업에 없어 실험실로 왔습니다." },
+  lab: { emptyResult: "계산하기를 누르면 결과가 여기에 나옵니다." },
+  saved: {
+    title: "저장소",
+    empty: "실험실에서 저장을 누르면 여기 쌓입니다.",
+    toLab: "실험실로",
+    open: "실험실에서 열기",
+  },
+} as const;
