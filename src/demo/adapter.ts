@@ -34,7 +34,7 @@ export function defaultRequest(config: LabConfig = gen.config): RunRequest {
     horizonDays: config.horizonDays,
     regressWindow: config.regressWindow,
     bandMethod: config.bandMethod,
-    rounds: config.defaults,
+    rounds: structuredClone(config.defaults),
   };
 }
 

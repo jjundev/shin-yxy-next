@@ -8,7 +8,8 @@ describe("adapter", () => {
     expect(req.horizonDays).toBe(20);
     expect(req.regressWindow).toBe(250);
     expect(req.bandMethod).toBe("MONTE_CARLO");
-    expect(req.rounds).toBe(getConfig().defaults);
+    expect(req.rounds).toEqual(getConfig().defaults);
+    expect(req.rounds).not.toBe(getConfig().defaults);
   });
 
   it("지연 0으로 실행하면 바로 결과가 온다", async () => {
