@@ -68,7 +68,7 @@ export interface Contribution {
   sampleSize: number;
 }
 
-/** 시장 하나 또는 업종 하나의 예상. round1.estimates 와 market 이 이 형태다. */
+/** 시장 하나, 업종 하나(round1.estimates), 또는 1등 종목 하나(round2.estimates)의 예상. 방향 적중은 업종 층에서 센다. */
 export interface Subject {
   subjectId: number;
   name: string;

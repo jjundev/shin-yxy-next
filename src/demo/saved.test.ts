@@ -12,13 +12,13 @@ describe("saved store", () => {
     expect(list.map((s) => s.request.asOf)).toEqual([...SEED_ASOFS]);
   });
 
-  it("시드 셋은 성공, 실패, 하나만 맞은 성공이다", () => {
+  it("시드 셋은 성공(하나 맞음), 실패, 성공(둘 맞음)이다", () => {
     const [a, b, c] = listSaved();
     expect(experimentVerdict(a.result)).toBe("SUCCESS");
-    expect(selectedHits(a.result.round2.estimates)).toEqual({ hits: 3, total: 3 });
+    expect(selectedHits(a.result.round1.estimates)).toEqual({ hits: 1, total: 3 });
     expect(experimentVerdict(b.result)).toBe("FAIL");
     expect(experimentVerdict(c.result)).toBe("SUCCESS");
-    expect(selectedHits(c.result.round2.estimates).hits).toBeLessThanOrEqual(1);
+    expect(selectedHits(c.result.round1.estimates).hits).toBe(2);
   });
 
   it("저장하면 맨 위에 쌓이고 id 로 찾는다", () => {

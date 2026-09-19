@@ -44,7 +44,7 @@ export function subjectVerdict(s: Scored): SubjectVerdict {
   return "FAIL";
 }
 
-/** 뽑은 업종 중 방향이 맞은 수 */
+/** 뽑은 대상 중 방향이 맞은 수. 업종 층(round1.estimates)을 넘겨 쓴다 */
 export function selectedHits(estimates: Subject[]): { hits: number; total: number } {
   const picked = estimates.filter((s) => s.selected);
   const hits = picked.filter((s) => directionHit(s.center, s.actual) === true).length;

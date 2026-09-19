@@ -17,8 +17,7 @@ test("없는 경로는 실험실로 보내고 토스트를 띄운다", async ({ 
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/lab$/);
-  // 개발 서버는 StrictMode 때문에 effect 가 두 번 돌아 같은 토스트가 둘 뜬다. 첫 번째만 본다.
-  await expect(page.getByText("그 화면은 이 목업에 없어 실험실로 왔습니다.").first()).toBeVisible();
+  await expect(page.getByText("그 화면은 이 목업에 없어 실험실로 왔습니다.")).toBeVisible();
 });
 
 test("테마 토글은 .dark 를 붙였다 뗀다", async ({ page }) => {

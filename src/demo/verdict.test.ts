@@ -46,12 +46,12 @@ describe("subjectVerdict", () => {
   });
 });
 
-// 방향 판정은 원본 표와 같이 2라운드(1등 종목 층)를 본다
+// 방향 적중은 원본 판정 표와 같이 업종 층(1라운드 추정치)에서 센다
 describe("selectedHits", () => {
   it("2026-01-15 뽑은 업종 셋 중 둘이 방향 적중", () => {
-    expect(selectedHits(run("2026-01-15").round2.estimates)).toEqual({ hits: 2, total: 3 });
+    expect(selectedHits(run("2026-01-15").round1.estimates)).toEqual({ hits: 2, total: 3 });
   });
-  it("2025-10-15 는 셋 다", () => {
-    expect(selectedHits(run("2025-10-15").round2.estimates)).toEqual({ hits: 3, total: 3 });
+  it("2025-10-15 는 하나만", () => {
+    expect(selectedHits(run("2025-10-15").round1.estimates)).toEqual({ hits: 1, total: 3 });
   });
 });

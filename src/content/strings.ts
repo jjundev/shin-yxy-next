@@ -12,6 +12,8 @@ export const strings = {
     start: "첫 실험 시작하기",
     toLab: "실험실로",
   },
+  verdict: { SUCCESS: "예상 성공", FAIL: "예상 실패", PENDING: "채점 전" },
+  subjectVerdict: { SUCCESS: "성공", DIRECTION_ONLY: "방향만 맞음", FAIL: "실패", PENDING: "채점 전" },
   toast: { unknownRoute: "그 화면은 이 목업에 없어 실험실로 왔습니다." },
   lab: { emptyResult: "계산하기를 누르면 결과가 여기에 나옵니다.", settingsLabel: "설정" },
   saved: {

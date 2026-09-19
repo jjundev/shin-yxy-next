@@ -9,7 +9,7 @@ export interface SavedExperiment {
   result: RunResult;
 }
 
-/** 스펙 7.4: 성공(셋 다 맞음), 실패, 성공(하나만 맞음) 순 */
+/** 스펙 7.4: 성공(하나 맞음), 실패, 성공(둘 맞음) 순 */
 export const SEED_ASOFS = ["2025-10-15", "2025-04-15", "2024-01-15"] as const;
 
 let store: SavedExperiment[] = [];
@@ -25,7 +25,7 @@ function seed(): void {
   store = SEED_ASOFS.map((asOf, i) => {
     const request = { ...defaultRequest(), asOf };
     // 저장 시각은 최근 것이 먼저 오도록 시드 순서를 역순으로 준다
-    const savedAt = `2026-09-1${3 - i}T09:00:00.000Z`;
+    const savedAt = new Date(Date.UTC(2026, 8, 13 - i, 9)).toISOString();
     return make(request, gen.runLab(request), savedAt);
   });
 }

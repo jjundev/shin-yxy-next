@@ -35,4 +35,8 @@ describe("strings", () => {
     expect(strings.nav.lab).toBe("실험실");
     expect(strings.nav.saved).toBe("저장소");
   });
+  it("판정 라벨이 내용 층에 있다", () => {
+    expect(strings.verdict.SUCCESS).toBe("예상 성공");
+    expect(strings.subjectVerdict.DIRECTION_ONLY).toBe("방향만 맞음");
+  });
 });

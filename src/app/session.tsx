@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { api } from "@/api/client";
+import { getSession } from "@/demo/adapter";
 import type { DemoUser } from "@/demo/types";
 
 const KEY = "shin.session";
@@ -14,7 +15,7 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<DemoUser | null>(() =>
-    localStorage.getItem(KEY) === "demo" ? { id: 0, loginId: "demo", name: "데모", roles: ["USER"] } : null,
+    localStorage.getItem(KEY) === "demo" ? getSession() : null,
   );
 
   const signIn = useCallback(async () => {

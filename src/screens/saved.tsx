@@ -8,8 +8,6 @@ import { Button } from "@/design/ui/button";
 import { formatPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const VERDICT_LABEL = { SUCCESS: "예상 성공", FAIL: "예상 실패", PENDING: "채점 전" } as const;
-
 export function SavedScreen() {
   const [items, setItems] = useState<SavedExperiment[] | null>(null);
   useEffect(() => {
@@ -52,9 +50,10 @@ export function SavedScreen() {
                     "rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap",
                     verdict === "SUCCESS" && "bg-accent text-accent-foreground",
                     verdict === "FAIL" && "bg-muted text-muted-foreground",
+                    verdict === "PENDING" && "border text-muted-foreground",
                   )}
                 >
-                  {VERDICT_LABEL[verdict]}
+                  {strings.verdict[verdict]}
                 </span>
                 <Button variant="outline" size="sm" onClick={() => {}}>{strings.saved.open}</Button>
               </div>

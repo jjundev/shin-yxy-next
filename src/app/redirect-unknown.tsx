@@ -5,7 +5,7 @@ import { strings } from "@/content/strings";
 
 export function RedirectUnknown() {
   useEffect(() => {
-    toast(strings.toast.unknownRoute);
+    toast(strings.toast.unknownRoute, { id: "unknown-route" });
   }, []);
   return <Navigate to="/lab" replace />;
 }

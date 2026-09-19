@@ -58,7 +58,7 @@ describe("routes", () => {
     localStorage.setItem("shin.session", "demo");
     const router = mount("/admin/users");
     await waitFor(() => expect(router.state.location.pathname).toBe("/lab"));
-    expect(toast).toHaveBeenCalledWith(strings.toast.unknownRoute);
+    expect(toast).toHaveBeenCalledWith(strings.toast.unknownRoute, { id: "unknown-route" });
   });
 
   it("상단 바에 두 링크와 데모 표시가 있다", () => {
