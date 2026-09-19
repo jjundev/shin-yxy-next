@@ -34,25 +34,30 @@ export function SavedScreen() {
         {items.map((s) => {
           const verdict = experimentVerdict(s.result);
           return (
-            <li key={s.id} className="flex flex-wrap items-center gap-4 rounded-lg border bg-card p-4">
+            <li className="flex flex-col gap-3 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:gap-4" key={s.id}>
               <div className="num text-sm">
                 <div>{s.request.asOf}</div>
-                <div className="text-muted-foreground">{s.request.horizonDays}거래일</div>
+                <div className="text-muted-foreground">
+                  {s.request.horizonDays}
+                  {strings.saved.tradingDays}
+                </div>
               </div>
-              <div className="min-w-0 flex-1 text-sm">
-                평균 <span className="num">{formatPct(s.result.avgReturn)}</span>, 시장{" "}
-                <span className="num">{formatPct(s.result.benchReturn)}</span>
+              <div className="text-sm sm:min-w-0 sm:flex-1">
+                {strings.saved.avg} <span className="num">{formatPct(s.result.avgReturn)}</span>,{" "}
+                {strings.saved.bench} <span className="num">{formatPct(s.result.benchReturn)}</span>
               </div>
-              <span
-                className={cn(
-                  "rounded-md px-2 py-0.5 text-xs font-medium",
-                  verdict === "SUCCESS" && "bg-accent text-accent-foreground",
-                  verdict === "FAIL" && "bg-muted text-muted-foreground",
-                )}
-              >
-                {VERDICT_LABEL[verdict]}
-              </span>
-              <Button variant="outline" size="sm" onClick={() => {}}>{strings.saved.open}</Button>
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+                    verdict === "SUCCESS" && "bg-accent text-accent-foreground",
+                    verdict === "FAIL" && "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {VERDICT_LABEL[verdict]}
+                </span>
+                <Button variant="outline" size="sm" onClick={() => {}}>{strings.saved.open}</Button>
+              </div>
             </li>
           );
         })}

@@ -13,11 +13,14 @@ export const strings = {
     toLab: "실험실로",
   },
   toast: { unknownRoute: "그 화면은 이 목업에 없어 실험실로 왔습니다." },
-  lab: { emptyResult: "계산하기를 누르면 결과가 여기에 나옵니다." },
+  lab: { emptyResult: "계산하기를 누르면 결과가 여기에 나옵니다.", settingsLabel: "설정" },
   saved: {
     title: "저장소",
     empty: "실험실에서 저장을 누르면 여기 쌓입니다.",
     toLab: "실험실로",
     open: "실험실에서 열기",
+    avg: "평균",
+    bench: "시장",
+    tradingDays: "거래일",
   },
 } as const;

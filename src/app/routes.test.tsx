@@ -2,11 +2,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RouterProvider } from "react-router";
+import { toast } from "sonner";
 import { createAppRouter } from "./routes";
 import { SessionProvider } from "./session";
 import { ThemeProvider } from "./theme";
 import { strings } from "@/content/strings";
 import { resetSaved } from "@/demo/saved";
+
+// 토스트는 DOM 포털이라 화면에서 잡기 어렵다. 호출만 확인한다.
+vi.mock("sonner", () => ({ toast: vi.fn() }));
 
 function mount(path: string) {
   const router = createAppRouter([path]);
@@ -23,6 +27,7 @@ function mount(path: string) {
 beforeEach(() => {
   localStorage.clear();
   resetSaved();
+  vi.mocked(toast).mockClear();
   vi.stubGlobal("matchMedia", (q: string) => ({
     matches: false, media: q, addEventListener: () => {}, removeEventListener: () => {},
   }));
@@ -53,6 +58,7 @@ describe("routes", () => {
     localStorage.setItem("shin.session", "demo");
     const router = mount("/admin/users");
     await waitFor(() => expect(router.state.location.pathname).toBe("/lab"));
+    expect(toast).toHaveBeenCalledWith(strings.toast.unknownRoute);
   });
 
   it("상단 바에 두 링크와 데모 표시가 있다", () => {
@@ -60,5 +66,13 @@ describe("routes", () => {
     mount("/lab");
     expect(screen.getAllByRole("link", { name: strings.nav.saved }).length).toBeGreaterThan(0);
     expect(screen.getByText(strings.demoBadge)).toBeInTheDocument();
+  });
+
+  it("데모 표시는 키보드로 짚을 수 있다", async () => {
+    localStorage.setItem("shin.session", "demo");
+    mount("/lab");
+    // 상단 바의 앞 링크 셋을 지나면 데모 표시에 닿는다
+    for (let i = 0; i < 4; i += 1) await userEvent.tab();
+    expect(screen.getByText(strings.demoBadge)).toHaveFocus();
   });
 });

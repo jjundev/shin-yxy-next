@@ -39,7 +39,10 @@ export function TopBar() {
         <div className="ml-auto flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="rounded-md border border-amber-500/60 bg-amber-50 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              <span
+                className="rounded-md border border-amber-500/60 bg-amber-50 px-2 py-0.5 text-xs whitespace-nowrap text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                tabIndex={0}
+              >
                 {strings.demoBadge}
               </span>
             </TooltipTrigger>
