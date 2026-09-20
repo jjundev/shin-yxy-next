@@ -11,7 +11,7 @@ export interface WhyStep {
 }
 
 /** 세 라운드에서 켜져 있고(on 또는 filter), 구현돼 있고, 기준일에 데이터가 있는 모듈의 합집합 크기 */
-function enabledModuleCount(config: LabConfig, request: RunRequest): number {
+export function enabledModuleCount(config: LabConfig, request: RunRequest): number {
   const keys = new Set<string>();
   for (const m of config.modules) {
     if (!m.implemented) continue;
