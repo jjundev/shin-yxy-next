@@ -233,7 +233,7 @@ function NewsRow({ it, asOf }: { it: NewsItem; asOf: string }) {
         <span>{it.source} · <span className="num">{when}</span></span>
         {it.judgments.map((j) => (
           <span key={j.id} className="num">
-            {j.sectorName ?? t.news.market} {DIR(j.direction)} {STRENGTH[j.strength] ?? STRENGTH[1]} {t.news.decay(j.decayDays)}
+            {j.sectorName ?? t.news.market} {DIR(j.direction)} {STRENGTH[j.strength] || STRENGTH[1]} {t.news.decay(j.decayDays)}
           </span>
         ))}
       </span>

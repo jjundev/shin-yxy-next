@@ -9,7 +9,6 @@ describe("whyCalc", () => {
   const req = defaultRequest();
   it("세 단계와 꼬리 숫자를 낸다", () => {
     const w = whyCalc(config, req, gen.runLab(req));
-    expect(w.lead).toBe("재료를 모아 → 4,000번 굴리고 → 남은 것으로 범위");
     expect(w.steps.map((s) => s.head)).toEqual(["모은다", "굴린다", "남는다"]);
     expect(w.steps[0].foot).toBe("켠 재료 8개");
     expect(w.steps[1].foot).toBe("시장 → 업종 11 → 1등 종목 11");

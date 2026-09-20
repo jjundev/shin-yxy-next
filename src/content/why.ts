@@ -33,11 +33,10 @@ export function whyCalc(
   config: LabConfig,
   request: RunRequest,
   result: RunResult | null,
-): { lead: string; steps: WhyStep[]; closing: string } {
+): { steps: WhyStep[]; closing: string } {
   const sims = SIMULATIONS.toLocaleString("en-US");
   const sectors = 11; // 결과가 없을 때 원본이 보여 주는 값
   return {
-    lead: `재료를 모아 → ${sims}번 굴리고 → 남은 것으로 범위`,
     steps: [
       {
         n: "1", head: "모은다",

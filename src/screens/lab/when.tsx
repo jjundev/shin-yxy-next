@@ -46,6 +46,7 @@ export function WhenSection(p: WhenProps) {
           <input
             type="range"
             aria-label={t.asOf}
+            aria-valuetext={days[idx]}
             className="w-full accent-primary"
             min={0}
             max={last}
