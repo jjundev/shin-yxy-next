@@ -3,7 +3,8 @@
  * 모든 규칙은 --p 가 없을 때 1(최종 상태)로 떨어지게 기본값을 준다. */
 
 /* 히어로 배경은 글이 앉는 왼쪽에서 깎아 낸다. 글로우 중심이 x 65% 라 손실이 거의 없고,
- * 흐린 글 대비가 4.44:1 → 4.76:1 로 올라간다 (measured, hero-aurora-light.webp) */
+ * 흐린 글 대비가 4.44:1 → 4.78:1 로 올라간다
+ * (실측 출처: hero-motion-light 영상 192프레임 표본 20장) */
 .hero-wash {
   -webkit-mask-image: linear-gradient(to right, transparent 45%, black 75%);
   mask-image: linear-gradient(to right, transparent 45%, black 75%);
@@ -20,6 +21,20 @@
 .progress-bar { transform: scaleX(var(--p, 0)); }
 @media (prefers-reduced-motion: reduce) {
   .progress-bar { display: none; }
+}
+
+/* 히어로는 첫 화면이라 스크롤을 기다리지 않는다. 뜨자마자 한 번 떠오르고 끝이다.
+ * .rise 를 쓰면 --p 가 0 이라 영영 안 보인다 (min-h-dvh 라 cover 가 0 에 고정된다) */
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-in {
+  animation: hero-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--d, 0) * 1s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-in { animation: none; }
 }
 
 /* 등장: 아래에서 떠오르며 또렷해진다. --d 로 줄마다 늦춘다 */

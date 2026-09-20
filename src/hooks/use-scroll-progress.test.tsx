@@ -47,9 +47,9 @@ function Probe({ options }: { options?: ScrollProgressOptions }) {
   return <div ref={ref} data-testid="s" />;
 }
 
-/** 높이 500 인 요소가 top 위치에 있다고 속인다 */
-function place(el: HTMLElement, top: number) {
-  el.getBoundingClientRect = () => ({ top, height: 500, bottom: top + 500, left: 0, right: 0, width: 0, x: 0, y: top, toJSON: () => ({}) });
+/** 높이 h 인 요소가 top 위치에 있다고 속인다 */
+function place(el: HTMLElement, top: number, h = 500) {
+  el.getBoundingClientRect = () => ({ top, height: h, bottom: top + h, left: 0, right: 0, width: 0, x: 0, y: top, toJSON: () => ({}) });
 }
 
 const p = (el: HTMLElement) => el.style.getPropertyValue("--p");
@@ -132,16 +132,35 @@ describe("useScrollProgress", () => {
     expect(cancelled).toBe(1);
   });
 
-  it("cover 는 요소가 뷰포트를 덮는 동안으로 잰다", () => {
+  it("cover 는 뷰포트보다 큰 요소가 화면을 덮는 동안으로 잰다", () => {
     stubAll();
     const { getByTestId } = render(<Probe options={{ span: "cover" }} />);
     const el = getByTestId("s");
     act(() => made[0].cb([{ isIntersecting: true }]));
-    place(el, 0);                           // -0 / max(1, 500-1000)=1 → 0
+    place(el, 0, 2000);          // 요소 위가 뷰포트 위 → 0
     runFrame();
     expect(p(el)).toBe("0.000");
-    place(el, -1);
+    place(el, -1000, 2000);      // 1000 만큼 지나감 / (2000-1000) → 1
     runFrame();
     expect(p(el)).toBe("1.000");
+    place(el, -500, 2000);
+    runFrame();
+    expect(p(el)).toBe("0.500");
+  });
+
+  it("cover 인데 요소가 뷰포트보다 짧으면 enter 처럼 잰다 — 1px 에 0→1 로 튀지 않는다", () => {
+    stubAll();
+    const { getByTestId } = render(<Probe options={{ span: "cover" }} />);
+    const el = getByTestId("s");
+    act(() => made[0].cb([{ isIntersecting: true }]));
+    place(el, 1000, 500);        // 위가 뷰포트 바닥 → 0
+    runFrame();
+    expect(p(el)).toBe("0.000");
+    place(el, -500, 500);        // 바닥이 뷰포트 위 → 1
+    runFrame();
+    expect(p(el)).toBe("1.000");
+    place(el, 250, 500);         // (1000-250)/1500
+    runFrame();
+    expect(p(el)).toBe("0.500");
   });
 });

@@ -24,8 +24,11 @@ let handle: number | null = null;
 function progressOf(el: HTMLElement, span: ProgressSpan): number {
   const r = el.getBoundingClientRect();
   const vh = window.innerHeight || 1;
-  const total = span === "enter" ? r.height + vh : Math.max(1, r.height - vh);
-  const passed = span === "enter" ? vh - r.top : -r.top;
+  // "cover" 는 요소가 뷰포트보다 클 때만 성립한다. 같거나 작으면 total 이 1px 로 눌려
+  // 스크롤 1px 에 0→1 로 튄다. 그럴 때는 "enter" 로 떨어뜨린다
+  const covers = span === "cover" && r.height > vh;
+  const total = covers ? r.height - vh : r.height + vh;
+  const passed = covers ? -r.top : vh - r.top;
   return Math.min(1, Math.max(0, passed / total));
 }
 
