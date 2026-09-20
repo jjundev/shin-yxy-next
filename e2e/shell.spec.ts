@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("shin.onboarded", "1"));
+});
+
 test("랜딩에서 시작해 로그인, 실험실, 저장소까지", async ({ page, isMobile }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "첫 실험 시작하기" }).click();

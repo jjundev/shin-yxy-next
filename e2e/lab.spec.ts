@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function enter(page: Page) {
+  // 안내는 onboarding.spec 이 본다. 여기서는 일반 모드
+  await page.addInitScript(() => localStorage.setItem("shin.onboarded", "1"));
   await page.goto("/login");
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
   await expect(page).toHaveURL(/\/lab$/);
