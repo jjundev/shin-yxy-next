@@ -1,3 +1,5 @@
+import { hasActual } from "./path-util";
+
 interface SparklineProps {
   expected: number[];
   low: number[];
@@ -22,7 +24,7 @@ export function Sparkline({ expected, low, high, actual, label }: SparklineProps
   const pt = (i: number, v: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;
   const band = [...high.map((v, i) => pt(i, v)), ...low.map((v, i) => pt(i, v)).reverse()].join(" ");
   const up = expected[n - 1] >= 0;
-  const act = actual && actual.length > 1 ? actual.map((v, i) => pt(i, v)).join(" ") : null;
+  const act = actual && hasActual(actual) ? actual.map((v, i) => pt(i, v)).join(" ") : null;
   return (
     <svg viewBox="0 0 96 26" className="h-[26px] w-24" role="img" aria-label={label}>
       <polygon points={band} className={up ? "fill-up/15" : "fill-down/15"} />

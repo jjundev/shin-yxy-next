@@ -5,6 +5,7 @@ import { strings } from "@/content/strings";
 import type { PathSubject } from "@/demo/types";
 import { formatPct } from "@/lib/format";
 import { focusKey, sameFocus, type Focus } from "./focus";
+import { hasActual } from "./path-util";
 
 export interface PathChartProps {
   dates: string[];
@@ -43,8 +44,8 @@ export function PathChart({ dates, subjects, focus, mode, height = 280 }: PathCh
   if (!focused || n < 2) return <div ref={ref} />;
 
   const drawn: number[][] = [focused.low, focused.high];
-  if (mode === "actual") for (const s of subjects) drawn.push(s.actual.length > 1 ? s.actual : s.expected);
-  else drawn.push(...focused.samples, focused.actual.length > 1 ? focused.actual : focused.expected);
+  if (mode === "actual") for (const s of subjects) drawn.push(hasActual(s.actual) ? s.actual : s.expected);
+  else drawn.push(...focused.samples, hasActual(focused.actual) ? focused.actual : focused.expected);
   let lo = 0;
   let hi = 0;
   for (const ys of drawn) for (const v of ys) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
@@ -56,7 +57,7 @@ export function PathChart({ dates, subjects, focus, mode, height = 280 }: PathCh
   const band = area<number>().x((_, i) => x(i)).y0((_, i) => y(focused.low[i])).y1((_, i) => y(focused.high[i]));
   const d = (ys: number[]) => path(toPts(ys)) ?? "";
   const key = (s: PathSubject) => focusKey({ round: s.round, subjectId: s.subjectId });
-  const hasActual = focused.actual.length > 1;
+  const focusedActual = hasActual(focused.actual);
 
   return (
     <div ref={ref} className="w-full">
@@ -71,14 +72,14 @@ export function PathChart({ dates, subjects, focus, mode, height = 280 }: PathCh
         <text x={width - PAD.right} y={height - 6} textAnchor="end" className="num fill-muted-foreground text-[10px]">{dates[n - 1]}</text>
         <path data-kind="band" d={band(focused.low) ?? ""} className="fill-chart-wash" />
         {mode === "actual"
-          ? subjects.filter((s) => s !== focused && s.actual.length > 1).map((s) => (
+          ? subjects.filter((s) => s !== focused && hasActual(s.actual)).map((s) => (
               <path key={key(s)} data-kind="actual" data-subject={key(s)} d={d(s.actual)} fill="none" className="stroke-flat" strokeWidth={1} opacity={0.6} />
             ))
           : focused.samples.map((ys, i) => {
               const dropped = focused.fates[i] !== "KEPT";
               return <path key={i} data-kind={dropped ? "dropped" : "sample"} d={d(ys)} fill="none" className={dropped ? "stroke-flat" : "stroke-chart"} strokeWidth={1} opacity={dropped ? 0.5 : 0.25} strokeDasharray={dropped ? "3 3" : undefined} />;
             })}
-        {hasActual ? (
+        {focusedActual ? (
           <path data-kind="focus" data-subject={key(focused)} d={d(focused.actual)} fill="none" className="stroke-chart" strokeWidth={2.5} />
         ) : (
           <path data-kind="expected" data-subject={key(focused)} d={d(focused.expected)} fill="none" className="stroke-chart" strokeWidth={2} strokeDasharray="5 4" />

@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { api } from "@/api/client";
 import { strings } from "@/content/strings";
 import { label } from "@/content/labels";
+import { NEWS_DAYS } from "@/content/constants";
 import type {
   EventsResponse, LabConfig, LabEvent, LabModule, NewsItem, NewsResponse, RunRequest,
 } from "@/demo/types";
@@ -42,7 +43,7 @@ interface IngredientsProps {
 export function Ingredients({ config, request, onModules }: IngredientsProps) {
   const { asOf, horizonDays } = request;
   const loadEvents = useCallback(() => api.events(asOf, horizonDays), [asOf, horizonDays]);
-  const loadNews = useCallback(() => api.news(asOf, 7), [asOf]);
+  const loadNews = useCallback(() => api.news(asOf, NEWS_DAYS), [asOf]);
   const [events, retryEvents] = useLoaded(loadEvents);
   const [news, retryNews] = useLoaded(loadNews);
   const byGroup = (g: string) => config.modules.filter((m) => m.group === g);
@@ -67,7 +68,7 @@ export function Ingredients({ config, request, onModules }: IngredientsProps) {
         <ModuleList title={t.cycle.title} mods={cycleMods} request={request} onModules={onModules} />
       </IngredientSection>
       <IngredientSection n="②" title={t.news.title} hint={t.news.hint} summary={newsSummary(news, retryNews)}>
-        <NewsList state={news} asOf={asOf} days={7} />
+        <NewsList state={news} asOf={asOf} days={NEWS_DAYS} />
       </IngredientSection>
       <IngredientSection
         n="③"
@@ -154,7 +155,7 @@ function newsSummary(news: Loaded<NewsResponse>, onRetry: () => void): ReactNode
   if (news.status === "loading") return t.news.reading;
   if (news.status === "error") return <Retry message={t.news.error} onRetry={onRetry} />;
   const c = newsCounts(news.data);
-  if (c.judged === 0) return t.news.noJudgment(7, c.total);
+  if (c.judged === 0) return t.news.noJudgment(NEWS_DAYS, c.total);
   return `${label("판독")} ${t.news.summary(c.used, c.market, c.sector)}`;
 }
 

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { defaultRequest, getConfig } from "@/demo/adapter";
 import * as gen from "@/demo/generated/adapter";
 import { strings } from "./strings";
-import { SIMULATIONS, WHY_PICKS, WHY_VERDICT, whyCalc } from "./why";
+import { WHY_PICKS, WHY_VERDICT, whyCalc } from "./why";
+import { SIMULATIONS } from "./constants";
 
 describe("whyCalc", () => {
   const config = getConfig();

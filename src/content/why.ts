@@ -1,7 +1,7 @@
-import type { LabConfig, RoundKey, RunRequest, RunResult } from "@/demo/types";
+import type { LabConfig, RunRequest, RunResult } from "@/demo/types";
 import type { Term } from "./labels";
-
-export const SIMULATIONS = 4000;
+import { SIMULATIONS } from "./constants";
+import { roundsOf } from "@/lib/rounds";
 
 export interface WhyStep {
   n: string;
@@ -10,17 +10,13 @@ export interface WhyStep {
   foot: string;
 }
 
-const ROUND_OF_LETTER: Record<string, RoundKey> = { M: "0", S: "1", I: "2" };
-
 /** 세 라운드에서 켜져 있고(on 또는 filter), 구현돼 있고, 기준일에 데이터가 있는 모듈의 합집합 크기 */
 function enabledModuleCount(config: LabConfig, request: RunRequest): number {
   const keys = new Set<string>();
   for (const m of config.modules) {
     if (!m.implemented) continue;
     if (m.dataStart !== null && m.dataStart > request.asOf) continue;
-    for (const ch of m.rounds) {
-      const r = ROUND_OF_LETTER[ch];
-      if (!r) continue;
+    for (const r of roundsOf(m)) {
       const s = request.rounds[r].modules[m.key];
       if (s && (s.on || s.filter)) keys.add(m.key);
     }

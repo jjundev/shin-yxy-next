@@ -5,6 +5,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/design/ui/toggle-group";
 import { PathChart } from "@/components/path-chart";
 import { RankList } from "@/components/rank-list";
 import { sameFocus, type Focus } from "@/components/focus";
+import { hasActual } from "@/components/path-util";
 import { horizonLabel } from "@/lib/format";
 import type { Layer, Mode } from "./state";
 
@@ -23,7 +24,7 @@ const t = strings.lab.picks;
 export function Picks({ result, layer, mode, focus, onLayer, onMode, onFocus }: PicksProps) {
   const subjects = result.paths.subjects.filter((s) => s.round === 0 || s.round === layer);
   const focused = subjects.find((s) => sameFocus({ round: s.round, subjectId: s.subjectId }, focus)) ?? subjects[0];
-  const anyActual = subjects.some((s) => s.actual.length > 1);
+  const anyActual = subjects.some((s) => hasActual(s.actual));
   const count = (r: 1 | 2) => result.paths.subjects.filter((s) => s.round === r).length;
   return (
     <div className="flex flex-col gap-3">

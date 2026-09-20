@@ -1,3 +1,4 @@
+import { SIMULATIONS_LABEL } from "./constants";
 export const strings = {
   appName: "주식 길잡이 실험실",
   nav: { lab: "실험실", saved: "저장소", mainMenu: "주 메뉴" },
@@ -41,7 +42,7 @@ export const strings = {
       statusLabel: "설정 상태",
     },
     whyDescription: {
-      summary: "재료를 모아 → 4,000번 굴리고 → 남은 것으로 범위",
+      summary: `재료를 모아 → ${SIMULATIONS_LABEL}번 굴리고 → 남은 것으로 범위`,
       picks: "그림 읽는 법",
       verdict: "확신도와 채점, 어떻게 나온 숫자인가",
     },
@@ -130,7 +131,7 @@ export const strings = {
     },
     picks: {
       title: "무엇을 뽑았나",
-      header: (asOf: string, horizon: string, samples: number) => `${asOf} 기준 · ${horizon} · 표본 길 ${samples}/4,000`,
+      header: (asOf: string, horizon: string, samples: number) => `${asOf} 기준 · ${horizon} · 표본 길 ${samples}/${SIMULATIONS_LABEL}`,
       layer: "층",
       layerSector: (n: number) => `시장 · 업종 ${n}`,
       layerLeader: (n: number) => `시장 · 1등 종목 ${n}`,

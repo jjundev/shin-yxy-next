@@ -2,8 +2,12 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
 import { toast } from "sonner";
 import { api, isApiError } from "@/api/client";
 import { strings } from "@/content/strings";
-import type { LabConfig, LabModule, RoundKey, RunRequest, RunResult } from "@/demo/types";
+import type { LabConfig, LabModule, RunRequest, RunResult } from "@/demo/types";
 import type { Focus } from "@/components/focus";
+import { roundsOf } from "@/lib/rounds";
+import { hasActual } from "@/components/path-util";
+
+export { roundsOf };
 
 export type Status = "idle" | "running" | "error";
 export type Layer = 1 | 2;
@@ -35,13 +39,6 @@ export type LabAction =
   | { type: "layer"; value: Layer }
   | { type: "mode"; value: Mode }
   | { type: "focus"; value: Focus | null };
-
-const ROUND_OF_LETTER: Record<string, RoundKey> = { M: "0", S: "1", I: "2" };
-
-/** 원본 nj: "MSI" 같은 문자열을 라운드 키 목록으로 */
-export function roundsOf(module: LabModule): RoundKey[] {
-  return [...module.rounds].map((ch) => ROUND_OF_LETTER[ch]).filter((r): r is RoundKey => r !== undefined);
-}
 
 /** 원본 ij: 이 모듈이 도는 라운드 중 켜진 수 */
 export function moduleState(request: RunRequest, module: LabModule): { on: number; of: number } {
@@ -89,11 +86,11 @@ export function labReducer(s: LabState, a: LabAction): LabState {
     case "run:start":
       return { ...s, status: "running", error: null };
     case "run:ok": {
-      const hasActual = a.result.paths.subjects.some((p) => p.actual.length > 1);
+      const actual = a.result.paths.subjects.some((p) => hasActual(p.actual));
       return {
         ...s, status: "idle", error: null, result: a.result, ranRequest: a.request,
         focus: { round: 0, subjectId: a.result.market.subjectId },
-        mode: hasActual ? "actual" : "rolled",
+        mode: actual ? "actual" : "rolled",
       };
     }
     case "run:fail":
