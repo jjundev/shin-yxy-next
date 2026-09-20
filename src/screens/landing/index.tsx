@@ -11,7 +11,9 @@ import "./landing.css";
 export function LandingScreen() {
   const root = useRef<HTMLDivElement>(null);
   const { run } = useFixedRun();
-  useScrollProgress(root, { span: "cover", rest: 0 });
+  // 루트는 --p 를 쓰면 안 된다. 커스텀 프로퍼티는 상속되므로 섹션 밖에 있는
+  // 히어로가 이 값을 물려받아 통째로 투명해진다 (실측으로 확인한 결함)
+  useScrollProgress(root, { span: "cover", rest: 0, varName: "--page-p" });
   const result = run.status === "ok" ? run.result : null;
 
   return (

@@ -11,10 +11,14 @@ export interface ScrollProgressOptions {
   span?: ProgressSpan;
   /** CSS 로 못 하는 것만(굴림 카운터의 글자). 매 프레임 불린다 — React state 를 건드리지 말 것 */
   onFrame?: (p: number, el: HTMLElement) => void;
+  /** 기록할 CSS 변수 이름. 기본 "--p".
+   *  커스텀 프로퍼티는 상속되므로, 섹션을 감싸는 바깥 요소는 반드시 다른 이름을 써야 한다 —
+   *  안 그러면 섹션 밖 자손(히어로 같은)이 바깥 값을 물려받는다 */
+  varName?: string;
 }
 
 type FrameRef = { current: ScrollProgressOptions["onFrame"] };
-interface Entry { el: HTMLElement; span: ProgressSpan; onFrame: FrameRef }
+interface Entry { el: HTMLElement; span: ProgressSpan; varName: string; onFrame: FrameRef }
 
 /** 지금 화면에 있는 섹션들. 루프는 이 집합이 비면 저절로 멈춘다 */
 const active = new Set<Entry>();
@@ -32,14 +36,14 @@ function progressOf(el: HTMLElement, span: ProgressSpan): number {
   return Math.min(1, Math.max(0, passed / total));
 }
 
-function apply(el: HTMLElement, p: number, onFrame: ScrollProgressOptions["onFrame"]): void {
-  el.style.setProperty("--p", p.toFixed(3));
+function apply(el: HTMLElement, p: number, varName: string, onFrame: ScrollProgressOptions["onFrame"]): void {
+  el.style.setProperty(varName, p.toFixed(3));
   onFrame?.(p, el);
 }
 
 function tick(): void {
   handle = null;
-  for (const e of active) apply(e.el, progressOf(e.el, e.span), e.onFrame.current);
+  for (const e of active) apply(e.el, progressOf(e.el, e.span), e.varName, e.onFrame.current);
   wake();
 }
 
@@ -54,7 +58,7 @@ export function useScrollProgress(
   ref: RefObject<HTMLElement | null>,
   options: ScrollProgressOptions = {},
 ): void {
-  const { rest = 1, span = "enter", onFrame } = options;
+  const { rest = 1, span = "enter", onFrame, varName = "--p" } = options;
   const latest = useRef(onFrame);
   useEffect(() => {
     latest.current = onFrame;
@@ -63,10 +67,10 @@ export function useScrollProgress(
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined" || prefersReducedMotion()) {
-      apply(el, rest, latest.current);
+      apply(el, rest, varName, latest.current);
       return;
     }
-    const entry: Entry = { el, span, onFrame: latest };
+    const entry: Entry = { el, span, varName, onFrame: latest };
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((x) => x.isIntersecting)) {
@@ -87,5 +91,5 @@ export function useScrollProgress(
         handle = null;
       }
     };
-  }, [ref, rest, span]);
+  }, [ref, rest, span, varName]);
 }

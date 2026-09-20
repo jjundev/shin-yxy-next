@@ -17,8 +17,8 @@
   }
 }
 
-/* 페이지 전체 진행 바. --p 는 랜딩 루트가 span:"cover" 로 쓴다 */
-.progress-bar { transform: scaleX(var(--p, 0)); }
+/* 페이지 전체 진행 바. --page-p 는 랜딩 루트가 span:"cover" 로 쓴다 (--p 는 섹션 것이다) */
+.progress-bar { transform: scaleX(var(--page-p, 0)); }
 @media (prefers-reduced-motion: reduce) {
   .progress-bar { display: none; }
 }

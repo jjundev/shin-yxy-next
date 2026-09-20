@@ -163,4 +163,23 @@ describe("useScrollProgress", () => {
     runFrame();
     expect(p(el)).toBe("0.500");
   });
+
+  it("varName 으로 다른 변수에 쓴다 — 섹션의 --p 를 덮지 않게", () => {
+    stubAll();
+    const { getByTestId } = render(<Probe options={{ span: "cover", varName: "--page-p" }} />);
+    const el = getByTestId("s");
+    act(() => made[0].cb([{ isIntersecting: true }]));
+    place(el, -500, 2000);
+    runFrame();
+    expect(el.style.getPropertyValue("--page-p")).toBe("0.500");
+    expect(el.style.getPropertyValue("--p")).toBe("");
+  });
+
+  it("varName 은 rest 경로에도 적용된다", () => {
+    stubAll();
+    vi.stubGlobal("IntersectionObserver", undefined);
+    const { getByTestId } = render(<Probe options={{ rest: 0, varName: "--page-p" }} />);
+    expect(getByTestId("s").style.getPropertyValue("--page-p")).toBe("0.000");
+    expect(getByTestId("s").style.getPropertyValue("--p")).toBe("");
+  });
 });

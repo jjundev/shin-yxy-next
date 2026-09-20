@@ -33,6 +33,11 @@ export function BackdropVideo({ name, className }: BackdropVideoProps) {
   return (
     <video
       key={resolved}
+      ref={(el) => {
+        // React 는 muted 를 프로퍼티로만 설정하고 속성으로 반영하지 않는다.
+        // 속성이 없으면 자동재생 정책에 걸려 멈춘 채로 뜬다 (실측)
+        if (el) el.muted = true;
+      }}
       autoPlay
       muted
       loop
