@@ -43,12 +43,7 @@ export function Moment({ result }: { result: RunResult | null }) {
   const dates = result?.paths.dates ?? [];
 
   return (
-    <LandingSection
-      id="moment"
-      title={t.title}
-      lead={t.lead}
-      span="cover"
-    >
+    <LandingSection id="moment" title={t.title} lead={t.lead} scrub>
       <div className="relative overflow-hidden rounded-lg border bg-card p-6">
         <div className="flex items-baseline justify-between pb-3 text-xs text-muted-foreground">
           <span className="pin num font-medium text-foreground">

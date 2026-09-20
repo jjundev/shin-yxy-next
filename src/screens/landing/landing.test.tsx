@@ -100,6 +100,13 @@ describe("LandingScreen", () => {
     expect(screen.queryByText(strings.lab.guide.steps[0].body)).toBeNull();
   });
 
+  it("스크럽 섹션은 화면보다 높고 본문이 sticky 로 붙어 있다", () => {
+    mount();
+    const moment = document.getElementById("moment");
+    expect(moment?.className).toContain("min-h-[180vh]");
+    expect(moment?.querySelector('[data-slot="scrub-stage"]')?.className).toContain("sticky");
+  });
+
   it("두 시점 섹션의 숫자 셋", () => {
     mount();
     for (const s of landing.moment.stats) {

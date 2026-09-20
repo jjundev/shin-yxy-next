@@ -164,6 +164,20 @@ describe("useScrollProgress", () => {
     expect(p(el)).toBe("0.500");
   });
 
+  it("cover 는 요소가 뷰포트보다 20% 넘게 커야 성립한다 — 아슬하게 크면 enter 로 떨어뜨린다", () => {
+    stubAll();
+    const { getByTestId } = render(<Probe options={{ span: "cover" }} />);
+    const el = getByTestId("s");
+    act(() => made[0].cb([{ isIntersecting: true }]));
+    // 높이 1014 / 뷰포트 1000 → cover 면 total 이 14px 로 눌린다. enter 로 가야 한다
+    place(el, 1000, 1014);
+    runFrame();
+    expect(p(el)).toBe("0.000");
+    place(el, 0, 1014);   // enter: (1000-0)/(1014+1000) = 0.4966
+    runFrame();
+    expect(p(el)).toBe("0.497");
+  });
+
   it("varName 으로 다른 변수에 쓴다 — 섹션의 --p 를 덮지 않게", () => {
     stubAll();
     const { getByTestId } = render(<Probe options={{ span: "cover", varName: "--page-p" }} />);

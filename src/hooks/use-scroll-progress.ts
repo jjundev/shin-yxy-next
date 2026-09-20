@@ -28,9 +28,9 @@ let handle: number | null = null;
 function progressOf(el: HTMLElement, span: ProgressSpan): number {
   const r = el.getBoundingClientRect();
   const vh = window.innerHeight || 1;
-  // "cover" 는 요소가 뷰포트보다 클 때만 성립한다. 같거나 작으면 total 이 1px 로 눌려
-  // 스크롤 1px 에 0→1 로 튄다. 그럴 때는 "enter" 로 떨어뜨린다
-  const covers = span === "cover" && r.height > vh;
+  // "cover" 는 요소가 뷰포트보다 넉넉히 클 때만 성립한다. 아슬하게 크면 total 이 몇 px 로
+  // 눌려 스크롤 몇 픽셀에 0→1 이 끝난다(실측: 914px 섹션에서 14px). 그럴 때는 "enter" 로 떨어뜨린다
+  const covers = span === "cover" && r.height >= vh * 1.2;
   const total = covers ? r.height - vh : r.height + vh;
   const passed = covers ? -r.top : vh - r.top;
   return Math.min(1, Math.max(0, passed / total));
