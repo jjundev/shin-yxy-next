@@ -7,6 +7,17 @@ import { Ingredients } from "./ingredients";
 
 const config = getConfig();
 
+/** 주기 재료(cal·evt)를 모든 층에서 끈 요청. 이러면 요약 줄은 "끔" 으로 바뀐다 */
+function cycleOffRequest() {
+  const request = defaultRequest();
+  for (const round of ["0", "1", "2"] as const) {
+    for (const key of ["cal", "evt"]) {
+      if (key in request.rounds[round].modules) request.rounds[round].modules[key].on = false;
+    }
+  }
+  return request;
+}
+
 beforeEach(() => vi.restoreAllMocks());
 
 describe("Ingredients", () => {
@@ -59,6 +70,25 @@ describe("Ingredients", () => {
     await userEvent.click(within(impact).getByRole("button", { name: "자세히" }));
     expect(within(impact).getByRole("switch", { name: "변동성지수" })).toBeDisabled();
     expect(within(impact).getByText("데이터가 2016-02-01 부터라 이 기준일엔 못 쓴다")).toBeInTheDocument();
+  });
+
+  it("주기를 꺼 둔 채 일정이 실패해도 다시 시도는 표 자리에 남는다", async () => {
+    vi.spyOn(api, "events").mockRejectedValueOnce(new ApiError(404, "없다"));
+    render(<Ingredients config={config} request={cycleOffRequest()} onModules={() => {}} />);
+    const cycle = screen.getByRole("region", { name: "주기" });
+    expect(within(cycle).getByText("끔 — 일정 안 봄")).toBeInTheDocument();
+    await userEvent.click(within(cycle).getByRole("button", { name: "자세히" }));
+    await userEvent.click(await within(cycle).findByRole("button", { name: "다시 시도" }));
+    expect(await within(cycle).findByText("금융 정책 발표 예정")).toBeInTheDocument();
+  });
+
+  it("주기가 켜진 채 일정이 실패하면 다시 시도는 하나뿐", async () => {
+    vi.spyOn(api, "events").mockRejectedValueOnce(new ApiError(404, "없다"));
+    render(<Ingredients config={config} request={defaultRequest()} onModules={() => {}} />);
+    const cycle = screen.getByRole("region", { name: "주기" });
+    expect(await within(cycle).findByText("일정을 불러오지 못했다.")).toBeInTheDocument();
+    await userEvent.click(within(cycle).getByRole("button", { name: "자세히" }));
+    expect(within(cycle).getAllByRole("button", { name: "다시 시도" })).toHaveLength(1);
   });
 
   it("뉴스가 실패하면 그 섹션 안에 한 줄과 다시 시도", async () => {

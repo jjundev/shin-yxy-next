@@ -60,10 +60,10 @@ export function Ingredients({ config, request, onModules }: IngredientsProps) {
         n="①"
         title={t.cycle.title}
         hint={t.cycle.hint}
-        summary={cycleSummary(events, cycleOn, seasonOn, retryEvents)}
+        summary={cycleSummary(events, cycleOn, seasonOn)}
         toggle={{ label: t.cycle.toggle, on: cycleOn, disabled: cycleKeys.length === 0, onChange: (on) => onModules(cycleKeys, on) }}
       >
-        <EventsTable state={events} asOf={asOf} horizonDays={horizonDays} />
+        <EventsTable state={events} asOf={asOf} horizonDays={horizonDays} onRetry={retryEvents} />
         <ModuleList title={t.cycle.title} mods={cycleMods} request={request} onModules={onModules} />
       </IngredientSection>
       <IngredientSection n="②" title={t.news.title} hint={t.news.hint} summary={newsSummary(news, retryNews)}>
@@ -122,12 +122,13 @@ function IngredientSection({ n, title, hint, summary, toggle, children }: Ingred
   );
 }
 
-/** 원본 uj */
-function cycleSummary(events: Loaded<EventsResponse>, cycleOn: boolean, seasonOn: boolean, onRetry: () => void): ReactNode {
+/** 원본 uj. 실패해도 여기서는 말만 한다 — 주기는 꺼 놓으면 이 줄 자체가
+ *  "끔" 으로 바뀌므로, 다시 시도는 늘 같은 자리(펼친 일정 표)에 둔다 */
+function cycleSummary(events: Loaded<EventsResponse>, cycleOn: boolean, seasonOn: boolean): string {
   const season = seasonOn ? t.cycle.seasonOn : t.cycle.seasonOff;
   if (!cycleOn) return t.cycle.off + (seasonOn ? t.cycle.seasonOnly : "");
   if (events.status === "loading") return t.cycle.counting;
-  if (events.status === "error") return <Retry message={t.cycle.error} onRetry={onRetry} />;
+  if (events.status === "error") return t.cycle.error;
   const known = events.data.known;
   if (known.length === 0) return `${t.cycle.none} · ${season}`;
   const counts = new Map<string, number>();
@@ -188,10 +189,9 @@ function EventRow({ e }: { e: LabEvent }) {
   );
 }
 
-function EventsTable({ state, asOf, horizonDays }: { state: Loaded<EventsResponse>; asOf: string; horizonDays: number }) {
+function EventsTable({ state, asOf, horizonDays, onRetry }: { state: Loaded<EventsResponse>; asOf: string; horizonDays: number; onRetry: () => void }) {
   if (state.status === "loading") return <p className="text-xs text-muted-foreground">{t.cycle.counting}</p>;
-  /** 실패 줄과 다시 시도는 늘 보이는 요약 자리에 있다. 여기서는 되풀이하지 않는다 */
-  if (state.status === "error") return <p className="text-xs text-muted-foreground">{t.cycle.error}</p>;
+  if (state.status === "error") return <Retry message={t.cycle.error} onRetry={onRetry} />;
   const { known, unknown } = state.data;
   const read = known.filter((e) => e.direction !== null).length;
   return (
