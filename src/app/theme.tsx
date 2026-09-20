@@ -15,7 +15,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function readStored(): Theme {
   const v = localStorage.getItem(KEY);
-  return v === "light" || v === "dark" || v === "system" ? v : "system";
+  return v === "light" || v === "dark" || v === "system" ? v : "dark";
 }
 
 function systemPrefersDark(): boolean {
