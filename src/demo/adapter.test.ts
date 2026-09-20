@@ -28,4 +28,17 @@ describe("adapter", () => {
     expect(login().accessToken).toBe("demo");
     expect(getSession().loginId).toBe("demo");
   });
+
+  it("paths.subjects 는 시장 1 + 업종 11 + 종목 11, 배열 길이는 dates 와 같다", async () => {
+    const out = await runLab(defaultRequest(), { delayMs: 0 });
+    const s = out.paths.subjects;
+    expect(s).toHaveLength(23);
+    expect(s.filter((x) => x.round === 0)).toHaveLength(1);
+    expect(s.filter((x) => x.round === 1)).toHaveLength(11);
+    expect(s[1].expected).toHaveLength(out.paths.dates.length);
+    expect(s[1].samples).toHaveLength(24);
+    expect(s[1].fates).toHaveLength(24);
+    expect(typeof out.paths.estimatedFrom).toBe("number");
+    expect(out.round1.branches.SHIFT.moduleCount).toBeGreaterThan(0);
+  });
 });

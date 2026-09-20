@@ -117,6 +117,33 @@ export interface InstrumentRow {
   spark: number[];
 }
 
+export interface BranchSummary {
+  moduleCount: number;
+  avgValue: number | null;
+}
+
+/** paths.subjects 한 항목. 시장(round 0), 업종(1), 1등 종목(2) 공용. 배열은 전부 paths.dates 와 같은 길이 */
+export interface PathSubject {
+  round: 0 | 1 | 2;
+  subjectId: number;
+  name: string;
+  selected: boolean;
+  center: number;
+  low80: number;
+  high80: number;
+  upProbability: number;
+  acceptRate: number | null;
+  expected: number[];
+  low: number[];
+  high: number[];
+  /** 기준일에 굴린 표본 길. 각 길은 dates 와 같은 길이 */
+  samples: number[][];
+  /** samples 와 짝. "KEPT" 가 아니면 체에 걸려 버린 길 */
+  fates: string[];
+  /** 확인 기간이 안 지났으면 빈 배열 */
+  actual: number[];
+}
+
 export interface RoundSummary {
   inCount: number;
   passCount: number;
@@ -128,7 +155,7 @@ export interface RoundSummary {
   onKeys: string[];
   sampleDates: number;
   sampleSubjects: number;
-  branches: Record<"SHIFT" | "WIDTH" | "CUT", unknown>;
+  branches: Record<"SHIFT" | "WIDTH" | "CUT", BranchSummary>;
   estimates: Subject[];
 }
 
@@ -155,7 +182,7 @@ export interface RunResult {
   portfolio: SeriesPoint[];
   benchmark: SeriesPoint[];
   horizonReached: boolean;
-  paths: { dates: string[]; estimatedFrom: string; subjects: unknown };
+  paths: { dates: string[]; estimatedFrom: number; subjects: PathSubject[] };
 }
 
 export interface NewsJudgment {
