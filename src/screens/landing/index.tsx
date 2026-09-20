@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import { landing } from "@/content/landing";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
+import { Contrast } from "./contrast";
 import { useFixedRun } from "./fixed-run";
 import { Hero } from "./hero";
+import { Moment } from "./moment";
 import { LandingFooter } from "./footer";
 import { LandingHeader } from "./header";
 import "./landing.css";
@@ -27,6 +29,8 @@ export function LandingScreen() {
       <LandingHeader />
       <main id="main">
         <Hero result={result} />
+        <Contrast result={result} />
+        <Moment result={result} />
       </main>
       <LandingFooter />
     </div>

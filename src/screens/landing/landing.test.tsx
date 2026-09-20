@@ -78,4 +78,39 @@ describe("LandingScreen", () => {
     mount();
     expect(screen.getByRole("link", { name: landing.skipToContent })).toHaveAttribute("href", "#main");
   });
+
+  it("대조 섹션은 뽑은 업종의 예상과 실제를 나란히 놓는다", async () => {
+    mount();
+    const list = await screen.findByRole("list", { name: landing.contrast.ours });
+    expect(list.querySelectorAll("li")).toHaveLength(3);
+    expect(list).toHaveTextContent("필수소비재");
+    expect(list).toHaveTextContent("의료");
+    expect(list).toHaveTextContent("금융");
+  });
+
+  it("대조 섹션의 왼쪽은 가상 예측 앱 그림 자리다", () => {
+    mount();
+    expect(screen.getByRole("img", { name: landing.contrast.imageAlt })).toBeInTheDocument();
+  });
+
+  it("두 시점 섹션 리드는 안내 1단계 본문의 앞부분이다", () => {
+    mount();
+    expect(screen.getByText(landing.moment.lead)).toBeInTheDocument();
+    // 실험실 조작 지시("왼쪽에서 …")는 랜딩에 옮기지 않는다
+    expect(screen.queryByText(strings.lab.guide.steps[0].body)).toBeNull();
+  });
+
+  it("두 시점 섹션의 숫자 셋", () => {
+    mount();
+    for (const s of landing.moment.stats) {
+      expect(screen.getByText(s.name)).toBeInTheDocument();
+    }
+  });
+});
+
+describe("랜딩이 말하는 숫자가 설정과 맞는가", () => {
+  it("고를 수 있는 기준 시점 개수", async () => {
+    const { config } = await import("@/demo/generated/adapter");
+    expect(String(config.asofChoices.length)).toBe(landing.moment.stats[0].value);
+  });
 });
