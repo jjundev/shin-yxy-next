@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { defaultRequest } from "./adapter";
 import * as gen from "./generated/adapter";
-import { getSaved, listSaved, resetSaved, saveExperiment, SEED_ASOFS } from "./saved";
+import {
+  getSaved, listSaved, resetSaved, saveExperiment, SEED_ASOFS, subscribeSaved,
+} from "./saved";
 import { experimentVerdict, selectedHits } from "./verdict";
 
 beforeEach(() => resetSaved());
@@ -35,5 +37,32 @@ describe("saved store", () => {
     saveExperiment(req, gen.runLab(req));
     resetSaved();
     expect(listSaved()).toHaveLength(3);
+  });
+
+  it("저장하면 구독자에게 알리고, 해지하면 안 알린다", () => {
+    const calls: number[] = [];
+    const off = subscribeSaved(() => calls.push(listSaved().length));
+    const req = defaultRequest();
+    saveExperiment(req, gen.runLab(req));
+    expect(calls).toEqual([4]);
+    off();
+    saveExperiment(req, gen.runLab(req));
+    expect(calls).toEqual([4]);
+  });
+
+  it("저장은 요청과 결과를 복사해 둔다", () => {
+    const req = defaultRequest();
+    const saved = saveExperiment(req, gen.runLab(req));
+    req.asOf = "2020-01-01";
+    expect(saved.request.asOf).toBe("2026-01-15");
+    expect(saved.request).not.toBe(req);
+  });
+
+  it("reset 뒤에도 새 저장 id 는 이전 id 와 겹치지 않는다", () => {
+    const req = defaultRequest();
+    const a = saveExperiment(req, gen.runLab(req));
+    resetSaved();
+    const b = saveExperiment(req, gen.runLab(req));
+    expect(b.id).not.toBe(a.id);
   });
 });

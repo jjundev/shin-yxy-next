@@ -12,16 +12,27 @@ export interface SavedExperiment {
 /** 스펙 7.4: 성공(하나 맞음), 실패, 성공(둘 맞음) 순 */
 export const SEED_ASOFS = ["2025-10-15", "2025-04-15", "2024-01-15"] as const;
 
+type Listener = () => void;
+
 let store: SavedExperiment[] = [];
-let counter = 0;
+let counter = 0; // reset 해도 되돌리지 않는다. id 가 겹치면 안 된다
+const listeners = new Set<Listener>();
+
+function notify(): void {
+  for (const l of listeners) l();
+}
 
 function make(request: RunRequest, result: RunResult, savedAt: string): SavedExperiment {
   counter += 1;
-  return { id: `exp-${counter}`, savedAt, request, result };
+  return {
+    id: `exp-${counter}`,
+    savedAt,
+    request: structuredClone(request),
+    result: structuredClone(result),
+  };
 }
 
 function seed(): void {
-  counter = 0;
   store = SEED_ASOFS.map((asOf, i) => {
     const request = { ...defaultRequest(), asOf };
     // 저장 시각은 최근 것이 먼저 오도록 시드 순서를 역순으로 준다
@@ -41,6 +52,7 @@ export function saveExperiment(
 ): SavedExperiment {
   const entry = make(request, result, now.toISOString());
   store.push(entry);
+  notify();
   return entry;
 }
 
@@ -48,8 +60,17 @@ export function getSaved(id: string): SavedExperiment | undefined {
   return store.find((s) => s.id === id);
 }
 
+/** 저장 목록이 바뀔 때마다 부른다. 돌려주는 함수로 해지 */
+export function subscribeSaved(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
 export function resetSaved(): void {
   seed();
+  notify();
 }
 
 seed();

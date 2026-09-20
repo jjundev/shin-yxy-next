@@ -7,12 +7,14 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/design/ui/tooltip";
 import { strings } from "@/content/strings";
 import { cn } from "@/lib/utils";
+import { useSavedCount } from "./saved-count";
 import { useTheme, type Theme } from "./theme";
 
 const THEME_ORDER: Theme[] = ["light", "dark", "system"];
 
 export function TopBar() {
   const { theme, setTheme } = useTheme();
+  const savedCount = useSavedCount();
   const navigate = useNavigate();
   const Icon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
 
@@ -32,9 +34,14 @@ export function TopBar() {
     <header className="border-b bg-background">
       <div className="mx-auto flex h-14 max-w-wide items-center gap-6 px-4">
         <NavLink to="/" className="font-semibold">{strings.appName}</NavLink>
-        <nav className="hidden gap-4 md:flex">
+        <nav className="hidden gap-4 md:flex" aria-label={strings.nav.mainMenu}>
           <NavLink to="/lab" className={link}>{strings.nav.lab}</NavLink>
-          <NavLink to="/saved" className={link}>{strings.nav.saved}</NavLink>
+          <NavLink to="/saved" className={link}>
+            {strings.nav.saved}
+            {savedCount !== null && savedCount > 0 && (
+              <span aria-hidden="true" className="num ml-1 rounded-sm bg-muted px-1 text-xs">{savedCount}</span>
+            )}
+          </NavLink>
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <Tooltip>
