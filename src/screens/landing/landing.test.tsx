@@ -107,6 +107,19 @@ describe("LandingScreen", () => {
     expect(moment?.querySelector('[data-slot="scrub-stage"]')?.className).toContain("sticky");
   });
 
+  it("시간 터널은 스크럽 무대 위 그림 하나로 들어간다", () => {
+    mount();
+    const img = screen.getByRole("img", { name: landing.tunnel.label });
+    expect(img).toHaveAttribute("src", expect.stringContaining("tunnel-"));
+  });
+
+  it("관찰이 없으면(jsdom) 터널이 마지막 프레임에서 멈춘다", () => {
+    mount();
+    // rest 1 → 036. 그 판이 S3 의 기준 시점으로 이어진다
+    expect(screen.getByRole("img", { name: landing.tunnel.label }))
+      .toHaveAttribute("src", "/landing-assets/time-tunnel/tunnel-036.webp");
+  });
+
   it("두 시점 섹션의 숫자 셋", () => {
     mount();
     for (const s of landing.moment.stats) {

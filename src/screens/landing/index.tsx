@@ -5,6 +5,7 @@ import { Contrast } from "./contrast";
 import { useFixedRun } from "./fixed-run";
 import { Hero } from "./hero";
 import { Moment } from "./moment";
+import { Tunnel } from "./tunnel";
 import { LandingFooter } from "./footer";
 import { LandingHeader } from "./header";
 import "./landing.css";
@@ -30,6 +31,7 @@ export function LandingScreen() {
       <main id="main">
         <Hero result={result} />
         <Contrast result={result} />
+        <Tunnel />
         <Moment result={result} />
       </main>
       <LandingFooter />
