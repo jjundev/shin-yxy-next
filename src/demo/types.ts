@@ -187,9 +187,11 @@ export interface RunResult {
 
 export interface NewsJudgment {
   id: number;
-  sectorId: number;
-  sectorName: string;
-  direction: string;
+  /** 시장 전체 판독이면 null */
+  sectorId: number | null;
+  sectorName: string | null;
+  /** -1 | 0 | 1 */
+  direction: number;
   strength: number;
   decayDays: number;
   rationale: string;
@@ -228,8 +230,9 @@ export interface LabEvent {
   knownAt: string;
   source: string;
   magnitude: number;
-  direction: string;
-  readBy: string;
+  /** 방향을 읽지 않은 일정은 null */
+  direction: number | null;
+  readBy: string | null;
   note: string;
   used: boolean;
 }

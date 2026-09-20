@@ -2,6 +2,7 @@ import { SummaryLine } from "@/components/summary-line";
 import { VerdictTable } from "@/components/verdict-table";
 import { strings } from "@/content/strings";
 import { Skeleton } from "@/design/ui/skeleton";
+import { Ingredients } from "./ingredients";
 import { Picks } from "./picks";
 import { LabRail } from "./rail";
 import { ResultSection } from "./section";
@@ -42,6 +43,13 @@ export function LabScreen() {
             onHorizon={(value) => dispatch({ type: "horizon", value })}
             onRun={run}
             onSave={save}
+          />
+        }
+        ingredients={
+          <Ingredients
+            config={config}
+            request={request}
+            onModules={(keys, on) => dispatch({ type: "module", keys, on })}
           />
         }
       />
