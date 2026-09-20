@@ -100,8 +100,12 @@ export function labReducer(s: LabState, a: LabAction): LabState {
       return { ...s, status: "error", error: a.message, result: null, ranRequest: null };
     case "saved":
       return { ...s, savedResult: a.result };
-    case "layer":
-      return { ...s, layer: a.value };
+    case "layer": {
+      /** 다른 층의 대상에 집중한 채로 층을 바꾸면 차트와 순위가 어긋난다. 시장으로 되돌린다 */
+      const stale = s.focus !== null && s.focus.round !== 0 && s.focus.round !== a.value;
+      const focus = stale ? { round: 0 as const, subjectId: s.result?.market.subjectId ?? 0 } : s.focus;
+      return { ...s, layer: a.value, focus };
+    }
     case "mode":
       return { ...s, mode: a.value };
     case "focus":

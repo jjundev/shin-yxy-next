@@ -93,8 +93,12 @@ describe("LabScreen", () => {
     mount();
     await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
     await screen.findByText(summary);
+    // 업종 하나에 집중한 채 층을 바꾸면 집중은 시장으로 돌아간다
+    await userEvent.click(within(screen.getByRole("list", { name: "업종 순위" })).getByRole("button", { name: /에너지/ }));
     await userEvent.click(screen.getByRole("radio", { name: "시장 · 1등 종목 11" }));
+    expect(document.querySelector('[data-kind="focus"]')?.getAttribute("data-subject")).toMatch(/^0:/);
     const rank = screen.getByRole("list", { name: "업종 순위" });
+    expect(within(rank).getByRole("button", { name: /기준선/ })).toHaveAttribute("aria-pressed", "true");
     expect(within(rank).getByText("KB금융")).toBeInTheDocument();
     await userEvent.click(within(rank).getByRole("button", { name: /KB금융/ }));
     expect(document.querySelector('[data-kind="focus"]')?.getAttribute("data-subject")).toMatch(/^2:/);

@@ -71,6 +71,16 @@ describe("labReducer", () => {
     expect(s.result).toBe(result); // 결과는 유지
   });
 
+  it("층을 바꾸면 다른 층에 걸린 집중은 시장으로 돌아가고, 같은 층이면 그대로다", () => {
+    let s = fresh();
+    s = labReducer(s, { type: "run:ok", request: s.request, result: gen.runLab(s.request) });
+    s = labReducer(s, { type: "focus", value: { round: 1, subjectId: 5 } });
+    const sameLayer = labReducer(s, { type: "layer", value: 1 });
+    expect(sameLayer.focus).toEqual({ round: 1, subjectId: 5 });
+    const otherLayer = labReducer(s, { type: "layer", value: 2 });
+    expect(otherLayer.focus).toEqual({ round: 0, subjectId: 0 });
+  });
+
   it("실패하면 결과를 지우고 메시지를 든다", () => {
     let s = fresh();
     s = labReducer(s, { type: "run:ok", request: s.request, result: gen.runLab(s.request) });
