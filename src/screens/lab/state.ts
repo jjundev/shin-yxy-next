@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { toast } from "sonner";
 import { api, isApiError } from "@/api/client";
+import { clearLabIntent, peekLabIntent } from "@/app/lab-intent";
+import { isOnboarded, setOnboarded } from "@/app/onboarded";
+import { hasActual } from "@/components/path-util";
+import type { Focus } from "@/components/focus";
 import { strings } from "@/content/strings";
 import type { LabConfig, LabModule, RunRequest, RunResult } from "@/demo/types";
-import type { Focus } from "@/components/focus";
 import { roundsOf } from "@/lib/rounds";
-import { hasActual } from "@/components/path-util";
+import { advanceGuide, type GuideStep } from "./guide";
 
 export { roundsOf };
 
 export type Status = "idle" | "running" | "error";
 export type Layer = 1 | 2;
 export type Mode = "actual" | "rolled";
+/** 레일 "무엇으로"의 세 재료 섹션 */
+export type IngredientKey = "cycle" | "news" | "impact";
 
 export interface LabState {
   config: LabConfig;
@@ -26,6 +31,10 @@ export interface LabState {
   layer: Layer;
   mode: Mode;
   focus: Focus | null;
+  /** 안내 모드의 지금 단계. null 이면 일반 모드 (상위 스펙 5장) */
+  guide: GuideStep | null;
+  /** 저장소에서 연 실험을 다시 계산하지 않고 보는 중 (상위 스펙 4.4) */
+  viewingSaved: boolean;
 }
 
 export type LabAction =
@@ -38,7 +47,14 @@ export type LabAction =
   | { type: "saved"; result: RunResult }
   | { type: "layer"; value: Layer }
   | { type: "mode"; value: Mode }
-  | { type: "focus"; value: Focus | null };
+  | { type: "focus"; value: Focus | null }
+  /** 재료 섹션 "자세히"를 펼쳤다. 안내 2단계 완료 조건 */
+  | { type: "expand"; section: IngredientKey }
+  /** 판정 표가 화면에 들어왔다. 안내 4단계 완료 조건 */
+  | { type: "verdict:seen" }
+  | { type: "guide:skip" }
+  /** 저장한 실험을 다시 계산하지 않고 연다 */
+  | { type: "open"; request: RunRequest; result: RunResult };
 
 /** 원본 ij: 이 모듈이 도는 라운드 중 켜진 수 */
 export function moduleState(request: RunRequest, module: LabModule): { on: number; of: number } {
@@ -47,10 +63,11 @@ export function moduleState(request: RunRequest, module: LabModule): { on: numbe
   return { on, of: rounds.length };
 }
 
-export function initialLabState(config: LabConfig, request: RunRequest): LabState {
+export function initialLabState(config: LabConfig, request: RunRequest, guided = false): LabState {
   return {
     config, request, result: null, ranRequest: null, status: "idle", error: null,
     savedResult: null, layer: 1, mode: "actual", focus: null,
+    guide: guided ? 1 : null, viewingSaved: false,
   };
 }
 
@@ -75,28 +92,41 @@ function setModules(request: RunRequest, config: LabConfig, keys: string[], on: 
   return { ...request, rounds };
 }
 
+/** 결과가 생겼을 때 공통: 시장에 집중, 실제 움직임이 있으면 그 모드 */
+function withResult(s: LabState, request: RunRequest, result: RunResult): LabState {
+  const actual = result.paths.subjects.some((p) => hasActual(p.actual));
+  return {
+    ...s, status: "idle", error: null, result, ranRequest: request,
+    focus: { round: 0, subjectId: result.market.subjectId },
+    mode: actual ? "actual" : "rolled",
+    viewingSaved: false,
+  };
+}
+
 export function labReducer(s: LabState, a: LabAction): LabState {
   switch (a.type) {
     case "asOf":
-      return { ...s, request: { ...s.request, asOf: a.value } };
+      return { ...s, request: { ...s.request, asOf: a.value }, guide: advanceGuide(s.guide, 1) };
     case "horizon":
-      return { ...s, request: { ...s.request, horizonDays: a.value } };
+      return { ...s, request: { ...s.request, horizonDays: a.value }, guide: advanceGuide(s.guide, 1) };
     case "module":
       return { ...s, request: setModules(s.request, s.config, a.keys, a.on) };
+    case "expand":
+      return { ...s, guide: advanceGuide(s.guide, 2) };
     case "run:start":
-      return { ...s, status: "running", error: null };
-    case "run:ok": {
-      const actual = a.result.paths.subjects.some((p) => hasActual(p.actual));
-      return {
-        ...s, status: "idle", error: null, result: a.result, ranRequest: a.request,
-        focus: { round: 0, subjectId: a.result.market.subjectId },
-        mode: actual ? "actual" : "rolled",
-      };
-    }
+      return { ...s, status: "running", error: null, guide: advanceGuide(s.guide, 3) };
+    case "run:ok":
+      return withResult(s, a.request, a.result);
     case "run:fail":
-      return { ...s, status: "error", error: a.message, result: null, ranRequest: null };
+      return { ...s, status: "error", error: a.message, result: null, ranRequest: null, viewingSaved: false };
+    case "open":
+      return { ...withResult(s, a.request, a.result), request: a.request, savedResult: a.result, viewingSaved: true, guide: null };
     case "saved":
       return { ...s, savedResult: a.result };
+    case "verdict:seen":
+      return { ...s, guide: advanceGuide(s.guide, 4) };
+    case "guide:skip":
+      return { ...s, guide: null };
     case "layer": {
       /** 다른 층의 대상에 집중한 채로 층을 바꾸면 차트와 순위가 어긋난다. 시장으로 되돌린다 */
       const stale = s.focus !== null && s.focus.round !== 0 && s.focus.round !== a.value;
@@ -110,10 +140,19 @@ export function labReducer(s: LabState, a: LabAction): LabState {
   }
 }
 
-type Boot = { type: "init"; config: LabConfig; request: RunRequest };
+type Boot = {
+  type: "init";
+  config: LabConfig;
+  request: RunRequest;
+  guided: boolean;
+  open?: { request: RunRequest; result: RunResult };
+};
 
 function bootReducer(s: LabState | null, a: LabAction | Boot): LabState | null {
-  if (a.type === "init") return initialLabState(a.config, a.request);
+  if (a.type === "init") {
+    const base = initialLabState(a.config, a.request, a.guided);
+    return a.open ? labReducer(base, { type: "open", ...a.open }) : base;
+  }
   return s === null ? null : labReducer(s, a);
 }
 
@@ -123,20 +162,43 @@ export interface LabApi {
   dispatch: (a: LabAction) => void;
   run: () => Promise<void>;
   save: () => Promise<void>;
+  skipGuide: () => void;
+  seeVerdict: () => void;
 }
 
-export function useLab(): LabApi {
+/** locationKey 가 바뀔 때마다 진입 의도(lab-intent)를 본다. 부팅 전이거나 의도가 있을 때만 다시 부팅한다.
+ *  의도 없이 key 만 바뀌면(같은 경로 재클릭) 상태를 지킨다 */
+export function useLab(locationKey?: string): LabApi {
   const [state, dispatch] = useReducer(bootReducer, null);
+  const booted = useRef(false);
 
   useEffect(() => {
     let alive = true;
+    const intent = peekLabIntent();
+    if (booted.current && intent === null) return;
     api.config().then((config) => {
-      if (alive) dispatch({ type: "init", config, request: api.defaultRequest(config) });
+      if (!alive) return;
+      const request = api.defaultRequest(config);
+      if (intent?.kind === "open") {
+        dispatch({ type: "init", config, request, guided: false, open: { request: intent.saved.request, result: intent.saved.result } });
+      } else {
+        dispatch({ type: "init", config, request, guided: intent?.kind === "guide" || !isOnboarded() });
+      }
+      booted.current = true;
+      clearLabIntent();
     });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [locationKey]);
+
+  /** 안내가 숫자에서 null 로 바뀌는 순간(건너뛰기든 판정 표를 봤든) 플래그를 박는다 (상위 스펙 5.3) */
+  const guide = state?.guide;
+  const prevGuide = useRef<GuideStep | null | undefined>(undefined);
+  useEffect(() => {
+    if (prevGuide.current != null && guide === null) setOnboarded();
+    prevGuide.current = guide;
+  }, [guide]);
 
   const request = state?.request;
   const status = state?.status;
@@ -169,5 +231,8 @@ export function useLab(): LabApi {
     }
   }, [state]);
 
-  return { state, dispatch, run, save };
+  const skipGuide = useCallback(() => dispatch({ type: "guide:skip" }), []);
+  const seeVerdict = useCallback(() => dispatch({ type: "verdict:seen" }), []);
+
+  return { state, dispatch, run, save, skipGuide, seeVerdict };
 }

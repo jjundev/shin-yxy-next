@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createAppRouter } from "./routes";
 import { SessionProvider } from "./session";
 import { ThemeProvider } from "./theme";
+import { setOnboarded } from "@/app/onboarded";
 import { strings } from "@/content/strings";
 import { resetSaved } from "@/demo/saved";
 
@@ -26,6 +27,7 @@ function mount(path: string) {
 
 beforeEach(() => {
   localStorage.clear();
+  setOnboarded();
   resetSaved();
   vi.mocked(toast).mockClear();
   vi.stubGlobal("matchMedia", (q: string) => ({

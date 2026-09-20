@@ -7,6 +7,7 @@ import { api } from "@/api/client";
 import { ApiError, setRunDelay } from "@/demo/adapter";
 import { resetSaved } from "@/demo/saved";
 import { ThemeProvider } from "@/app/theme";
+import { setOnboarded } from "@/app/onboarded";
 import { LabScreen } from "./index";
 
 vi.mock("sonner", () => ({ toast: vi.fn() }));
@@ -23,6 +24,7 @@ function mount() {
 
 beforeEach(() => {
   localStorage.clear();
+  setOnboarded();
   resetSaved();
   vi.mocked(toast).mockClear();
   vi.restoreAllMocks();

@@ -2,9 +2,11 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
 import { api } from "@/api/client";
+import { clearLabIntent, peekLabIntent, setLabIntent } from "@/app/lab-intent";
+import { setOnboarded } from "@/app/onboarded";
 import { ApiError, getConfig, setRunDelay } from "@/demo/adapter";
 import * as gen from "@/demo/generated/adapter";
-import { resetSaved } from "@/demo/saved";
+import { listSaved, resetSaved } from "@/demo/saved";
 import {
   canSave, initialLabState, isDirty, labReducer, moduleState, roundsOf, useLab, type LabState,
 } from "./state";
@@ -20,6 +22,8 @@ function fresh(): LabState {
 }
 
 beforeEach(() => {
+  localStorage.clear();
+  clearLabIntent();
   resetSaved();
   vi.mocked(toast).mockClear();
   vi.restoreAllMocks();
@@ -100,9 +104,61 @@ describe("labReducer", () => {
     s = labReducer(s, { type: "run:ok", request: { ...s.request, asOf: "2025-10-15" }, result: r2 });
     expect(canSave(s)).toBe(true);
   });
+
+  it("안내: 기준 시점·재료 펼침·계산·판정 표 순으로 넘어가고 끝나면 null", () => {
+    let s = initialLabState(config, api.defaultRequest(config), true);
+    expect(s.guide).toBe(1);
+    s = labReducer(s, { type: "horizon", value: 5 });
+    expect(s.guide).toBe(2);
+    s = labReducer(s, { type: "expand", section: "news" });
+    expect(s.guide).toBe(3);
+    s = labReducer(s, { type: "run:start" });
+    expect(s.guide).toBe(4);
+    s = labReducer(s, { type: "verdict:seen" });
+    expect(s.guide).toBeNull();
+  });
+
+  it("안내: 1단계에서 바로 계산하면 4단계, 건너뛰면 null, 일반 모드는 안 움직인다", () => {
+    let s = initialLabState(config, api.defaultRequest(config), true);
+    s = labReducer(s, { type: "run:start" });
+    expect(s.guide).toBe(4);
+    s = labReducer(s, { type: "guide:skip" });
+    expect(s.guide).toBeNull();
+    const plain = labReducer(fresh(), { type: "expand", section: "cycle" });
+    expect(plain.guide).toBeNull();
+  });
+
+  it("open 은 요청·결과·저장 참조를 한 번에 놓아 dirty 도 아니고 저장도 잠긴다", () => {
+    const saved = listSaved()[0];
+    const s = labReducer(fresh(), { type: "open", request: saved.request, result: saved.result });
+    expect(s.request).toEqual(saved.request);
+    expect(s.ranRequest).toEqual(saved.request);
+    expect(s.result).toBe(saved.result);
+    expect(s.savedResult).toBe(saved.result);
+    expect(s.viewingSaved).toBe(true);
+    expect(s.status).toBe("idle");
+    expect(isDirty(s)).toBe(false);
+    expect(canSave(s)).toBe(false);
+    expect(s.focus).toEqual({ round: 0, subjectId: saved.result.market.subjectId });
+    expect(s.mode).toBe("actual");
+  });
+
+  it("보던 저장 실험은 다시 계산하면 일반 상태로 돌아온다", () => {
+    const saved = listSaved()[0];
+    let s = labReducer(fresh(), { type: "open", request: saved.request, result: saved.result });
+    s = labReducer(s, { type: "run:start" });
+    expect(s.viewingSaved).toBe(true); // 계산 중에도 표시는 남는다
+    s = labReducer(s, { type: "run:ok", request: saved.request, result: gen.runLab(saved.request) });
+    expect(s.viewingSaved).toBe(false);
+    expect(canSave(s)).toBe(true);
+  });
 });
 
 describe("useLab", () => {
+  beforeEach(() => {
+    setOnboarded(); // 기존 테스트는 안내가 끝난 일반 모드를 가정한다
+  });
+
   it("설정을 읽고, 계산하면 결과가 오고, 저장하면 토스트를 띄운다", async () => {
     const { result } = renderHook(() => useLab());
     await waitFor(() => expect(result.current.state).not.toBeNull());
@@ -151,5 +207,56 @@ describe("useLab", () => {
     await waitFor(() => expect(result.current.state).not.toBeNull());
     await act(() => result.current.run());
     expect(result.current.state?.error).toBe("실행 실패");
+  });
+
+  it("플래그가 없으면 안내로 열리고, 건너뛰면 플래그가 박힌다", async () => {
+    localStorage.clear();
+    const { result } = renderHook(() => useLab());
+    await waitFor(() => expect(result.current.state).not.toBeNull());
+    expect(result.current.state?.guide).toBe(1);
+    act(() => result.current.skipGuide());
+    expect(result.current.state?.guide).toBeNull();
+    expect(localStorage.getItem("shin.onboarded")).toBe("1");
+  });
+
+  it("판정 표를 보면 안내가 끝나고 플래그가 박힌다", async () => {
+    localStorage.clear();
+    const { result } = renderHook(() => useLab());
+    await waitFor(() => expect(result.current.state).not.toBeNull());
+    await act(() => result.current.run());
+    expect(result.current.state?.guide).toBe(4);
+    act(() => result.current.seeVerdict());
+    expect(result.current.state?.guide).toBeNull();
+    expect(localStorage.getItem("shin.onboarded")).toBe("1");
+  });
+
+  it("열기 의도가 있으면 그 실험으로 열리고 의도는 지워진다. 안내는 안 뜬다", async () => {
+    localStorage.clear();
+    const saved = listSaved()[0];
+    setLabIntent({ kind: "open", saved });
+    const { result } = renderHook(() => useLab("k1"));
+    // state 가 null 이면 ?. 가 undefined 로 빠져 result 단언이 헛돈다. 부팅부터 기다린다
+    await waitFor(() => expect(result.current.state).not.toBeNull());
+    expect(result.current.state?.result).not.toBeNull();
+    expect(result.current.state?.request.asOf).toBe("2025-10-15");
+    expect(result.current.state?.viewingSaved).toBe(true);
+    expect(result.current.state?.guide).toBeNull();
+    expect(peekLabIntent()).toBeNull();
+  });
+
+  it("안내 의도로 같은 화면에 다시 들어오면 고정 입력으로 리셋되고 1단계", async () => {
+    const { result, rerender } = renderHook(({ key }) => useLab(key), { initialProps: { key: "k1" } });
+    await waitFor(() => expect(result.current.state).not.toBeNull());
+    await act(() => result.current.run());
+    expect(result.current.state?.result).not.toBeNull();
+    // 의도 없이 key 만 바뀌면 그대로
+    rerender({ key: "k2" });
+    await waitFor(() => expect(result.current.state?.result).not.toBeNull());
+    setLabIntent({ kind: "guide" });
+    rerender({ key: "k3" });
+    await waitFor(() => expect(result.current.state?.guide).toBe(1));
+    expect(result.current.state?.result).toBeNull();
+    expect(result.current.state?.request.asOf).toBe("2026-01-15");
+    expect(peekLabIntent()).toBeNull();
   });
 });
