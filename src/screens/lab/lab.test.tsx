@@ -1,10 +1,10 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RouterProvider, createMemoryRouter } from "react-router";
 import { toast } from "sonner";
 import { api } from "@/api/client";
-import { ApiError, setRunDelay } from "@/demo/adapter";
+import { ApiError, runLab, setRunDelay } from "@/demo/adapter";
 import { listSaved, resetSaved } from "@/demo/saved";
 import { ThemeProvider } from "@/app/theme";
 import { clearOnboarded, setOnboarded } from "@/app/onboarded";
@@ -47,6 +47,8 @@ beforeEach(() => {
     matches: false, media: q, addEventListener: () => {}, removeEventListener: () => {},
   }));
 });
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("LabScreen", () => {
   it("처음엔 레일과 빈 결과 한 줄, 저장은 비활성", async () => {
@@ -144,14 +146,32 @@ describe("LabScreen 안내 모드", () => {
     expect(document.querySelector('[data-slot="when"]')).toHaveClass("opacity-50");
     await userEvent.click(within(screen.getByRole("region", { name: "뉴스" })).getByRole("button", { name: "자세히" }));
     expect(screen.getByRole("region", { name: /3\/4/ })).toBeInTheDocument();
+    /** 계산이 도는 동안(뼈대)에는 관찰을 걸지 않는다 — 키 큰 화면에서 안내가 바로 끝나 버린다 */
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    vi.spyOn(api, "run").mockImplementationOnce((req) => gate.then(() => runLab(req)));
     await userEvent.click(screen.getByRole("button", { name: "계산하기" }));
     expect(await screen.findByRole("region", { name: /4\/4/ })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "맞았나" })).toBeInTheDocument();
-    expect(observers.length).toBeGreaterThan(0);
+    expect(observers).toHaveLength(0);
+    await act(async () => { release(); await gate; });
+    expect(await screen.findByRole("heading", { name: "맞았나" })).toBeInTheDocument();
+    expect(observers).toHaveLength(1);
     act(() => observers[observers.length - 1]([{ isIntersecting: true }]));
     expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: /4\/4/ })).not.toBeInTheDocument();
     expect(localStorage.getItem("shin.onboarded")).toBe("1");
+  });
+
+  it("계산이 거부되면 관찰을 걸지 않고 4/4 카드와 건너뛰기가 남는다", async () => {
+    stubIO();
+    vi.spyOn(api, "run").mockRejectedValueOnce(new ApiError(404, "데모에는 없는 화면이다: /nope"));
+    mount();
+    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
+    expect(await screen.findAllByText("데모에는 없는 화면이다: /nope")).toHaveLength(3);
+    expect(observers).toHaveLength(0);
+    expect(screen.getByRole("region", { name: /4\/4/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "건너뛰기" })).toBeInTheDocument();
+    expect(localStorage.getItem("shin.onboarded")).toBeNull();
   });
 
   it("1단계에서 바로 계산하면 4/4 로 건너뛴다", async () => {

@@ -65,7 +65,7 @@ export function TopBar() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="메뉴"><MoreHorizontal className="size-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label={strings.nav.menu}><MoreHorizontal className="size-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={replayOnboarding}>{strings.menu.replayOnboarding}</DropdownMenuItem>

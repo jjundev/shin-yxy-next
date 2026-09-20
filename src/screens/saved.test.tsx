@@ -1,7 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RouterProvider, createMemoryRouter } from "react-router";
+import { api } from "@/api/client";
 import { clearLabIntent, peekLabIntent } from "@/app/lab-intent";
 import { resetSaved } from "@/demo/saved";
 import { SavedScreen } from "./saved";
@@ -20,6 +21,8 @@ beforeEach(() => {
   clearLabIntent();
 });
 
+afterEach(() => vi.restoreAllMocks());
+
 describe("SavedScreen", () => {
   it("시드 셋을 최근 저장 순으로, 카드마다 스펙 7.2 항목", async () => {
     mount();
@@ -33,6 +36,14 @@ describe("SavedScreen", () => {
     expect(first.getByText(/뽑은 업종/)).toBeInTheDocument();
     expect(first.getByText("예상 성공")).toBeInTheDocument();
     expect(within(cards[1]).getByText("예상 실패")).toBeInTheDocument();
+  });
+
+  it("불러오기가 거부되면 한 줄과 다시 시도, 다시 시도하면 카드가 나온다", async () => {
+    vi.spyOn(api, "saved").mockRejectedValueOnce(new Error("x"));
+    mount();
+    expect(await screen.findByText("저장소를 불러오지 못했다.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(await screen.findAllByRole("listitem")).toHaveLength(3);
   });
 
   it("실험실에서 열기는 열기 의도를 심고 실험실로 간다", async () => {

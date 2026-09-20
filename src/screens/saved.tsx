@@ -14,20 +14,47 @@ import { cn } from "@/lib/utils";
 const t = strings.saved;
 
 /** 상위 스펙 7장. 목록 하나, 카드마다 열기 하나 */
+type LoadState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ok"; items: SavedExperiment[]; config: LabConfig };
+
 export function SavedScreen() {
-  const [data, setData] = useState<{ items: SavedExperiment[]; config: LabConfig } | null>(null);
+  const [data, setData] = useState<LoadState>({ status: "loading" });
+  const [tick, setTick] = useState(0);
   const navigate = useNavigate();
   useEffect(() => {
     let alive = true;
-    Promise.all([api.saved(), api.config()]).then(([items, config]) => {
-      if (alive) setData({ items, config });
-    });
+    Promise.all([api.saved(), api.config()]).then(
+      ([items, config]) => {
+        if (alive) setData({ status: "ok", items, config });
+      },
+      () => {
+        if (alive) setData({ status: "error" });
+      },
+    );
     return () => {
       alive = false;
     };
-  }, []);
+  }, [tick]);
 
-  if (data === null) return null;
+  /** 다시 시도는 누른 자리에서 loading 으로 되돌린다(effect 안에서 하면 연쇄 렌더) */
+  function retry() {
+    setData({ status: "loading" });
+    setTick((n) => n + 1);
+  }
+
+  if (data.status === "error") {
+    return (
+      <div className="mx-auto flex max-w-content flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-4 text-sm">
+          <span>{t.loadFailed}</span>
+          <Button variant="outline" size="sm" onClick={retry}>{strings.lab.retry}</Button>
+        </div>
+      </div>
+    );
+  }
+  if (data.status === "loading") return null;
   const { items, config } = data;
 
   if (items.length === 0) {

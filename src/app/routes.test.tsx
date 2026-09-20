@@ -86,7 +86,7 @@ describe("routes", () => {
     await screen.findByText(strings.lab.emptyResult);
     // 메뉴는 키보드로 연다. jsdom 에서 userEvent 의 클릭은 이 파일의 앞 테스트가 userEvent 를
     // 쓴 뒤라면 Radix 트리거의 첫 pointerdown 을 삼킨다. Enter 는 같은 경로를 안정적으로 탄다
-    const trigger = screen.getByRole("button", { name: "메뉴" });
+    const trigger = screen.getByRole("button", { name: strings.nav.menu });
     trigger.focus();
     await userEvent.keyboard("{Enter}");
     await userEvent.click(await screen.findByRole("menuitem", { name: strings.menu.replayOnboarding }));

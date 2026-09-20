@@ -1,7 +1,7 @@
 import { SIMULATIONS_LABEL } from "./constants";
 export const strings = {
   appName: "주식 길잡이 실험실",
-  nav: { lab: "실험실", saved: "저장소", mainMenu: "주 메뉴" },
+  nav: { lab: "실험실", saved: "저장소", mainMenu: "주 메뉴", menu: "메뉴", bottomTabs: "하단 탭" },
   demoBadge: "데모 · 데이터는 무작위",
   demoBadgeHint: "저장한 실험은 새로고침하면 예시 세 개로 돌아갑니다.",
   theme: { light: "라이트", dark: "다크", system: "시스템 설정" },
@@ -210,5 +210,6 @@ export const strings = {
     picked: "뽑은 업종",
     nonePicked: "없음",
     card: (asOf: string) => `${asOf} 실험`,
+    loadFailed: "저장소를 불러오지 못했다.",
   },
 } as const;

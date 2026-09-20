@@ -1,6 +1,6 @@
 import type { LabConfig, RunRequest, RunResult } from "@/demo/types";
 import type { Term } from "./labels";
-import { SIMULATIONS } from "./constants";
+import { SIMULATIONS_LABEL } from "./constants";
 import { roundsOf } from "@/lib/rounds";
 
 export interface WhyStep {
@@ -30,7 +30,6 @@ export function whyCalc(
   request: RunRequest,
   result: RunResult | null,
 ): { steps: WhyStep[]; closing: string } {
-  const sims = SIMULATIONS.toLocaleString("en-US");
   const sectors = 11; // 결과가 없을 때 원본이 보여 주는 값
   return {
     steps: [
@@ -41,7 +40,7 @@ export function whyCalc(
       },
       {
         n: "2", head: "굴린다",
-        body: `앞으로 하루하루 값이 어떻게 될지를 ${sims}번 그려 본다. 시장을 먼저 그리고, 그 답을 업종의 출발점으로, 업종의 답을 다시 그 업종 1등 종목의 출발점으로 넘긴다. 뉴스 몫은 앞 며칠에 몰린다.`,
+        body: `앞으로 하루하루 값이 어떻게 될지를 ${SIMULATIONS_LABEL}번 그려 본다. 시장을 먼저 그리고, 그 답을 업종의 출발점으로, 업종의 답을 다시 그 업종 1등 종목의 출발점으로 넘긴다. 뉴스 몫은 앞 며칠에 몰린다.`,
         foot: `시장 → 업종 ${result?.round1.estimates.length ?? sectors} → 1등 종목 ${result?.round2.estimates.length ?? sectors}`,
       },
       {

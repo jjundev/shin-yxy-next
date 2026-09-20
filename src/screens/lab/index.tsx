@@ -29,7 +29,13 @@ export function LabScreen() {
   const location = useLocation();
   const { state, dispatch, run, save, skipGuide, seeVerdict } = useLab(location.key);
   const verdictRef = useRef<HTMLDivElement>(null);
-  useInView(verdictRef, state?.guide === 4, seeVerdict);
+  /** 관찰은 판정 표가 실제로 그려진 뒤에만. 뼈대(running)나 오류 한 줄은 키 큰 화면에서
+   *  이미 20% 보이므로, 계산하기를 누른 순간 안내가 끝나 버린다 */
+  useInView(
+    verdictRef,
+    state !== null && state.guide === 4 && state.result !== null && state.status === "idle",
+    seeVerdict,
+  );
   if (!state) return <Booting />;
   const { config, request, result, status, error, guide } = state;
   const t = strings.lab;
