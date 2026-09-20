@@ -1,5 +1,5 @@
-const MINUS = "−";
-const NONE = "—";
+const MINUS = "\u2212";
+const NONE = "\u2014";
 
 function signed(v: number, suffix: string): string {
   return (v >= 0 ? "+" : MINUS) + Math.abs(v * 100).toFixed(1) + suffix;
