@@ -122,7 +122,7 @@ export function VerdictTable({ result, focus, onFocus }: VerdictTableProps) {
   const c = t.columns;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[520px] text-sm">
+      <table aria-label={t.title} className="w-full min-w-[520px] text-sm">
         <thead className="text-left text-xs text-muted-foreground">
           <tr>
             <th className="pb-2 pr-2 font-medium">{c.sector}</th>

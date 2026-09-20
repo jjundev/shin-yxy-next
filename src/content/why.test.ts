@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defaultRequest, getConfig } from "@/demo/adapter";
 import * as gen from "@/demo/generated/adapter";
 import { strings } from "./strings";
-import { WHY_PICKS, WHY_VERDICT, whyCalc } from "./why";
+import { REMAIN_BODY, WHY_PICKS, WHY_VERDICT, whyCalc } from "./why";
 import { SIMULATIONS } from "./constants";
 
 describe("whyCalc", () => {
@@ -34,5 +34,12 @@ describe("나머지 패널", () => {
     expect(strings.lab.when.run).toBe("계산하기");
     expect(strings.lab.summary.earnedMore).toBe("더 벌었다");
     expect(strings.lab.verdict.pick.belowStart).toBe("내릴 듯");
+  });
+});
+
+describe("REMAIN_BODY", () => {
+  it("whyCalc 3단계 본문과 같은 문장이다", () => {
+    expect(REMAIN_BODY).toContain("열에 여덟");
+    expect(whyCalc(getConfig(), defaultRequest(), null).steps[2].body).toBe(REMAIN_BODY);
   });
 });

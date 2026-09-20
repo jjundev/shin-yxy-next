@@ -24,6 +24,10 @@ export function enabledModuleCount(config: LabConfig, request: RunRequest): numb
   return keys.size;
 }
 
+/** 원본 3단계 "남는다" 본문. 랜딩 S7 이 같은 문장을 쓴다 — 두 벌 두지 않는다 */
+export const REMAIN_BODY =
+  "남은 길로 날짜별 예상 중앙과 범위를 낸다. 「열에 여덟」은 앞으로 열 번 중 여덟 번은 이 안에서 끝난다고 보는 자리라는 뜻이다.";
+
 /** 원본 "이 숫자는 어떻게 나오나" */
 export function whyCalc(
   config: LabConfig,
@@ -45,7 +49,7 @@ export function whyCalc(
       },
       {
         n: "3", head: "남는다",
-        body: "남은 길로 날짜별 예상 중앙과 범위를 낸다. 「열에 여덟」은 앞으로 열 번 중 여덟 번은 이 안에서 끝난다고 보는 자리라는 뜻이다.",
+        body: REMAIN_BODY,
         foot: result
           ? `업종 ${result.round1.estimates.filter((e) => e.selected).length}개 뽑음`
           : "돌리면 나온다",
