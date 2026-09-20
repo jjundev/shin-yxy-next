@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { defaultRequest } from "@/demo/adapter";
 import * as gen from "@/demo/generated/adapter";
 import type { RunResult } from "@/demo/types";
-import { SummaryLine, summaryText } from "./summary-line";
+import { SummaryLine } from "./summary-line";
+import { summaryText } from "./summary-text";
 
 const FIXED =
   "업종 11개 중 3개(의료 · 금융 · 필수소비재)를 뽑아 1등 종목으로 1개월 뒤 +1.2%를 예상했다. 실제는 +0.7%, 같은 기간 시장은 −0.6% — 시장보다 +1.3%p 더 벌었다 (왕복 거래비용 −0.3%p를 뺀 값). 예상 성공.";
