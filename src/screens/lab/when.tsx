@@ -18,6 +18,7 @@ export interface WhenProps {
   dirty: boolean;
   canSave: boolean;
   saved: boolean;
+  viewingSaved: boolean;
   onAsOf: (v: string) => void;
   onHorizon: (v: number) => void;
   onRun: () => void;
@@ -83,15 +84,20 @@ export function WhenSection(p: WhenProps) {
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
-          <Button className="flex-1" variant={p.dirty || !p.hasResult ? "default" : "outline"} disabled={running} onClick={p.onRun}>
-            {running ? t.running : t.run}
+          <Button
+            className="flex-1"
+            variant={p.dirty || !p.hasResult || p.viewingSaved ? "default" : "outline"}
+            disabled={running}
+            onClick={p.onRun}
+          >
+            {running ? t.running : p.viewingSaved ? t.rerun : t.run}
           </Button>
           <Button variant="outline" disabled={!p.canSave} onClick={p.onSave}>
             {p.saved ? t.saved : t.save}
           </Button>
         </div>
         <p role="status" aria-label={t.statusLabel} className="min-h-4 text-xs text-muted-foreground">
-          {p.dirty ? t.dirty : ""}
+          {p.dirty ? t.dirty : p.viewingSaved ? t.viewingSaved(p.request.asOf) : ""}
         </p>
       </div>
     </section>

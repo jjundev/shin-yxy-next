@@ -13,18 +13,19 @@ interface WhySheetProps {
   title: string;
   description: string;
   children: ReactNode;
+  triggerLabel?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 /** 섹션 제목 옆 "왜?" 버튼과 그것이 여는 오른쪽 시트. 설명 산문은 여기에만 산다(스펙 3.3) */
-export function WhySheet({ title, description, children, open, onOpenChange }: WhySheetProps) {
+export function WhySheet({ title, description, children, triggerLabel, open, onOpenChange }: WhySheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="sm" className="text-muted-foreground">
           <HelpCircle className="size-4" />
-          {strings.lab.why}
+          {triggerLabel ?? strings.lab.why}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="sm:max-w-md overflow-y-auto">

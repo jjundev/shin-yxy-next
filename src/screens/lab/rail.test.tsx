@@ -15,4 +15,20 @@ describe("LabRail", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(body).not.toHaveClass("hidden");
   });
+  it("체크리스트 슬롯이 맨 위에 오고, 흐리기는 opacity 만 준다", () => {
+    const { container } = render(
+      <LabRail checklist={<p>첫 실험</p>} when={<p>언제</p>} ingredients={<p>재료 본문</p>} dim={{ ingredients: true }} />,
+    );
+    const aside = container.querySelector("aside")!;
+    expect(aside.firstElementChild).toHaveTextContent("첫 실험");
+    expect(container.querySelector('[data-slot="when"]')).not.toHaveClass("opacity-50");
+    expect(document.getElementById("what-body")!.closest("section")).toHaveClass("opacity-50");
+  });
+
+  it("openIngredients 가 켜지면 모바일 접힘이 펴진다", () => {
+    const { rerender } = render(<LabRail when={<p>언제</p>} ingredients={<p>재료 본문</p>} />);
+    expect(document.getElementById("what-body")).toHaveClass("hidden");
+    rerender(<LabRail when={<p>언제</p>} ingredients={<p>재료 본문</p>} openIngredients />);
+    expect(document.getElementById("what-body")).not.toHaveClass("hidden");
+  });
 });

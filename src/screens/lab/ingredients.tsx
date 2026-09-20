@@ -11,7 +11,7 @@ import { Button } from "@/design/ui/button";
 import { Switch } from "@/design/ui/switch";
 import { horizonLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { moduleState, roundsOf } from "./state";
+import { moduleState, roundsOf, type IngredientKey } from "./state";
 
 const t = strings.lab.what;
 const NONE = "—";
@@ -38,9 +38,10 @@ interface IngredientsProps {
   config: LabConfig;
   request: RunRequest;
   onModules: (keys: string[], on: boolean) => void;
+  onExpand?: (section: IngredientKey) => void;
 }
 
-export function Ingredients({ config, request, onModules }: IngredientsProps) {
+export function Ingredients({ config, request, onModules, onExpand }: IngredientsProps) {
   const { asOf, horizonDays } = request;
   const loadEvents = useCallback(() => api.events(asOf, horizonDays), [asOf, horizonDays]);
   const loadNews = useCallback(() => api.news(asOf, NEWS_DAYS), [asOf]);
@@ -63,11 +64,12 @@ export function Ingredients({ config, request, onModules }: IngredientsProps) {
         hint={t.cycle.hint}
         summary={cycleSummary(events, cycleOn, seasonOn)}
         toggle={{ label: t.cycle.toggle, on: cycleOn, disabled: cycleKeys.length === 0, onChange: (on) => onModules(cycleKeys, on) }}
+        onOpen={() => onExpand?.("cycle")}
       >
         <EventsTable state={events} asOf={asOf} horizonDays={horizonDays} onRetry={retryEvents} />
         <ModuleList title={t.cycle.title} mods={cycleMods} request={request} onModules={onModules} />
       </IngredientSection>
-      <IngredientSection n="②" title={t.news.title} hint={t.news.hint} summary={newsSummary(news, retryNews)}>
+      <IngredientSection n="②" title={t.news.title} hint={t.news.hint} summary={newsSummary(news, retryNews)} onOpen={() => onExpand?.("news")}>
         <NewsList state={news} asOf={asOf} days={NEWS_DAYS} />
       </IngredientSection>
       <IngredientSection
@@ -76,6 +78,7 @@ export function Ingredients({ config, request, onModules }: IngredientsProps) {
         hint={t.impact.hint}
         summary={analog ? "" : t.impact.none}
         toggle={{ label: t.impact.toggle, on: analog ? moduleState(request, analog).on > 0 : false, disabled: !analog, onChange: (on) => analog && onModules([analog.key], on) }}
+        onOpen={() => onExpand?.("impact")}
       >
         <p className="text-xs text-muted-foreground">{t.impact.off}</p>
         <ModuleList title={t.impact.groups.news} mods={byGroup("news")} request={request} onModules={onModules} />
@@ -92,11 +95,12 @@ interface IngredientSectionProps {
   hint: string;
   summary: ReactNode;
   toggle?: { label: string; on: boolean; disabled: boolean; onChange: (on: boolean) => void };
+  onOpen?: () => void;
   children: ReactNode;
 }
 
 /** 원본 sj: 번호, 제목, 힌트, 요약, 토글, 자세히 */
-function IngredientSection({ n, title, hint, summary, toggle, children }: IngredientSectionProps) {
+function IngredientSection({ n, title, hint, summary, toggle, onOpen, children }: IngredientSectionProps) {
   const [open, setOpen] = useState(false);
   return (
     <section className={cn("rounded-md border p-3", toggle && !toggle.on && "opacity-70")} aria-label={title}>
@@ -114,7 +118,16 @@ function IngredientSection({ n, title, hint, summary, toggle, children }: Ingred
           <div className="mt-1 text-xs">{summary}</div>
         </div>
       </div>
-      <Button variant="ghost" size="xs" className="mt-2" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <Button
+        variant="ghost"
+        size="xs"
+        className="mt-2"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) onOpen?.();
+          setOpen((o) => !o);
+        }}
+      >
         {open ? <ChevronDown /> : <ChevronRight />}
         {open ? t.collapse : t.expand}
       </Button>

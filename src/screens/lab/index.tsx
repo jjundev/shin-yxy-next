@@ -39,6 +39,7 @@ export function LabScreen() {
             dirty={isDirty(state)}
             canSave={canSave(state)}
             saved={result !== null && state.savedResult === result}
+            viewingSaved={state.viewingSaved}
             onAsOf={(value) => dispatch({ type: "asOf", value })}
             onHorizon={(value) => dispatch({ type: "horizon", value })}
             onRun={run}

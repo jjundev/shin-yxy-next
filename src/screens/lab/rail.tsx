@@ -5,15 +5,28 @@ import { label } from "@/content/labels";
 import { cn } from "@/lib/utils";
 
 interface LabRailProps {
+  /** 안내 모드의 체크리스트. 레일 맨 위 (상위 스펙 5.1) */
+  checklist?: ReactNode;
   when: ReactNode;
   ingredients?: ReactNode;
+  /** 지금 안내 단계가 아닌 섹션을 흐리게. 막지는 않는다 (5.3) */
+  dim?: { when?: boolean; ingredients?: boolean };
+  /** true 가 되면 모바일 접힘을 편다. 안내 2단계가 재료를 보여 줘야 한다 */
+  openIngredients?: boolean;
 }
 
 const HEADING = "text-sm font-semibold text-muted-foreground";
 
 /** 왼쪽 레일. 데스크톱은 sticky, 모바일은 "무엇으로" 만 접힌다(스펙 3.2, 설계 결정 12) */
-export function LabRail({ when, ingredients }: LabRailProps) {
-  const [open, setOpen] = useState(false);
+export function LabRail({ checklist, when, ingredients, dim, openIngredients }: LabRailProps) {
+  const [open, setOpen] = useState(!!openIngredients);
+  // openIngredients 가 켜지는 순간에만 편다. 그 뒤 접는 건 여전히 사람 몫이므로
+  // 파생값이 아니라 "prop 이 바뀔 때 state 를 맞추는" 렌더 중 조정이다
+  const [wasOpening, setWasOpening] = useState(openIngredients);
+  if (openIngredients !== wasOpening) {
+    setWasOpening(openIngredients);
+    if (openIngredients) setOpen(true);
+  }
   const t = strings.lab.what;
   const heading = (
     <>
@@ -25,9 +38,10 @@ export function LabRail({ when, ingredients }: LabRailProps) {
       aria-label={strings.lab.settingsLabel}
       className="flex flex-col gap-6 rounded-lg border bg-card p-4 md:sticky md:top-20 md:max-h-[calc(100dvh-6rem)] md:self-start md:overflow-y-auto"
     >
-      {when}
+      {checklist}
+      <div data-slot="when" className={cn(dim?.when && "opacity-50")}>{when}</div>
       {ingredients && (
-        <section className="flex flex-col gap-3" aria-labelledby="what-title">
+        <section className={cn("flex flex-col gap-3", dim?.ingredients && "opacity-50")} aria-labelledby="what-title">
           {/* md+ 는 본문이 늘 펼쳐져 있으므로 여는 단추 자체를 치운다. 초점도 안 간다 */}
           <button
             type="button"

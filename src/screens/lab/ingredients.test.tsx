@@ -99,4 +99,15 @@ describe("Ingredients", () => {
     await userEvent.click(within(news).getByRole("button", { name: "다시 시도" }));
     expect(await within(news).findByText(/뉴스 판독 51건/)).toBeInTheDocument();
   });
+  it("자세히를 펼치면 어느 섹션인지 알린다. 접을 때는 안 알린다", async () => {
+    const onExpand = vi.fn();
+    render(<Ingredients config={config} request={defaultRequest()} onModules={() => {}} onExpand={onExpand} />);
+    const news = screen.getByRole("region", { name: "뉴스" });
+    await userEvent.click(within(news).getByRole("button", { name: "자세히" }));
+    expect(onExpand).toHaveBeenCalledWith("news");
+    await userEvent.click(within(news).getByRole("button", { name: "접기" }));
+    expect(onExpand).toHaveBeenCalledTimes(1);
+    await userEvent.click(within(screen.getByRole("region", { name: "뉴스 영향" })).getByRole("button", { name: "자세히" }));
+    expect(onExpand).toHaveBeenLastCalledWith("impact");
+  });
 });
