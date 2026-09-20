@@ -152,8 +152,12 @@ export function VerdictTable({ result }: { result: RunResult }) {
           <tfoot className="border-t text-xs text-muted-foreground">
             <tr>
               <td colSpan={4} className="py-2 pr-2">
-                <span>{t.footer(picked.length)}</span>
-                {scored.length > 0 && <span className="num ml-2">{t.hits(hits.hits, ranges, scored.length)}</span>}
+                {/** 안내 4단계가 관찰하는 표의 끝. 줄 전체는 좁은 화면에서 가로로 잘려
+                  *  끝까지 내려가도 다 보이는 법이 없으므로, 잘리지 않는 이 글월을 본다 */}
+                <span data-slot="verdict-footer" className="inline-flex flex-wrap items-baseline gap-x-2">
+                  <span>{t.footer(picked.length)}</span>
+                  {scored.length > 0 && <span className="num">{t.hits(hits.hits, ranges, scored.length)}</span>}
+                </span>
               </td>
               <td className={cn("num py-2 pr-2 text-right", tone(meanCenter))}>{formatPct(meanCenter)}</td>
               <td className={cn("num py-2 pr-2 text-right", tone(meanActual))}>{formatPct(meanActual)}</td>

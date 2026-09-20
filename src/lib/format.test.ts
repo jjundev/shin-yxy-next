@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPct, formatPp, horizonLabel } from "./format";
+import { formatDate, formatPct, formatPp, horizonLabel } from "./format";
 
 describe("formatPct", () => {
   it("양수는 + 부호와 소수 한 자리", () => {
@@ -34,5 +34,19 @@ describe("horizonLabel", () => {
   it("매핑에 없으면 N거래일", () => {
     expect(horizonLabel(1)).toBe("1거래일");
     expect(horizonLabel(22)).toBe("22거래일");
+  });
+});
+
+describe("formatDate", () => {
+  it("그 자리의 달력 날짜를 준다 (UTC 날짜가 아니라)", () => {
+    // KST 라면 이 시각의 toISOString 은 2026-09-12T16:00:00Z — slice 하면 하루 전이다
+    expect(formatDate(new Date(2026, 8, 13, 1, 0).toISOString())).toBe("2026-09-13");
+  });
+  it("자정 언저리도 그 자리 기준으로 (시간대와 무관)", () => {
+    expect(formatDate(new Date(2026, 0, 1, 0, 0).toISOString())).toBe("2026-01-01");
+    expect(formatDate(new Date(2025, 11, 31, 23, 59).toISOString())).toBe("2025-12-31");
+  });
+  it("한 자리 월/일은 0 을 채운다", () => {
+    expect(formatDate(new Date(2026, 2, 5, 12, 0).toISOString())).toBe("2026-03-05");
   });
 });

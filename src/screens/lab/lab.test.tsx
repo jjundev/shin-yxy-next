@@ -20,12 +20,16 @@ const summary = (_: string, el: Element | null) =>
 
 /** 판정 표가 화면에 들어온 척하기. jsdom 에는 IntersectionObserver 가 없다 */
 type IOCb = (entries: { isIntersecting: boolean }[]) => void;
-const observers: IOCb[] = [];
+const observers: { cb: IOCb; observed: Element[] }[] = [];
 function stubIO() {
   observers.length = 0;
   vi.stubGlobal("IntersectionObserver", class {
-    constructor(cb: IOCb) { observers.push(cb); }
-    observe() {}
+    self: { cb: IOCb; observed: Element[] };
+    constructor(cb: IOCb) {
+      this.self = { cb, observed: [] };
+      observers.push(this.self);
+    }
+    observe(el: Element) { this.self.observed.push(el); }
     disconnect() {}
   });
 }
@@ -156,7 +160,11 @@ describe("LabScreen 안내 모드", () => {
     await act(async () => { release(); await gate; });
     expect(await screen.findByRole("heading", { name: "맞았나" })).toBeInTheDocument();
     expect(observers).toHaveLength(1);
-    act(() => observers[observers.length - 1]([{ isIntersecting: true }]));
+    /** 섹션 머리가 아니라 판정 표의 마지막 줄을 본다 — 키 큰 화면에서 바로 끝나지 않도록 */
+    const [watched] = observers[0].observed;
+    expect(watched.getAttribute("data-slot")).toBe("verdict-footer");
+    expect(within(watched as HTMLElement).getByText(/뽑은 업종 \d+개 평균/)).toBeInTheDocument();
+    act(() => observers[observers.length - 1].cb([{ isIntersecting: true }]));
     expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: /4\/4/ })).not.toBeInTheDocument();
     expect(localStorage.getItem("shin.onboarded")).toBe("1");
@@ -188,6 +196,16 @@ describe("LabScreen 안내 모드", () => {
     expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
     expect(screen.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeInTheDocument();
     expect(localStorage.getItem("shin.onboarded")).toBe("1");
+  });
+
+  it("안내 중에는 결과 칸이 먼저(좁은 화면 한 칸), 건너뛰면 레일이 먼저", async () => {
+    mount();
+    const column = (await screen.findByRole("region", { name: /1\/4/ })).parentElement!;
+    expect(column).toHaveClass("order-first");
+    expect(column).toHaveClass("md:order-none");
+    await userEvent.click(screen.getByRole("button", { name: "건너뛰기" }));
+    const normal = screen.getByText("계산하기를 누르면 결과가 여기에 나옵니다.").parentElement!;
+    expect(normal).not.toHaveClass("order-first");
   });
 
   it("카드의 왜 이렇게 하나요? 가 시트를 연다", async () => {

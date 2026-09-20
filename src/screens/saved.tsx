@@ -9,6 +9,7 @@ import type { SavedExperiment } from "@/demo/saved";
 import type { LabConfig } from "@/demo/types";
 import { experimentVerdict } from "@/demo/verdict";
 import { Button } from "@/design/ui/button";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const t = strings.saved;
@@ -88,7 +89,7 @@ export function SavedScreen() {
               <div className="num text-sm sm:w-28 sm:shrink-0">
                 <div>{s.request.asOf}</div>
                 <div className="text-muted-foreground">{s.request.horizonDays}{t.tradingDays}</div>
-                <div className="text-xs text-muted-foreground">{t.savedAt} {s.savedAt.slice(0, 10)}</div>
+                <div className="text-xs text-muted-foreground">{t.savedAt} {formatDate(s.savedAt)}</div>
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
                 <p className="break-keep">{summaryText(s.result)}</p>

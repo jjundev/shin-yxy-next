@@ -5,6 +5,7 @@ import { VerdictTable } from "@/components/verdict-table";
 import { strings } from "@/content/strings";
 import { Skeleton } from "@/design/ui/skeleton";
 import { useInView } from "@/lib/use-in-view";
+import { cn } from "@/lib/utils";
 import { Checklist } from "./checklist";
 import { GUIDE_STEPS } from "./guide";
 import { GuideCard } from "./guide-card";
@@ -30,11 +31,14 @@ export function LabScreen() {
   const { state, dispatch, run, save, skipGuide, seeVerdict } = useLab(location.key);
   const verdictRef = useRef<HTMLDivElement>(null);
   /** 관찰은 판정 표가 실제로 그려진 뒤에만. 뼈대(running)나 오류 한 줄은 키 큰 화면에서
-   *  이미 20% 보이므로, 계산하기를 누른 순간 안내가 끝나 버린다 */
+   *  이미 20% 보이므로, 계산하기를 누른 순간 안내가 끝나 버린다.
+   *  섹션 머리가 아니라 표의 마지막 줄을 본다 — 키 큰 화면(1280x1600)에서는 결과가 닿자마자
+   *  섹션 위쪽 20% 가 이미 보여서 "판정 표까지" 스크롤한 적이 없어도 단계가 끝난다 */
   useInView(
     verdictRef,
     state !== null && state.guide === 4 && state.result !== null && state.status === "idle",
     seeVerdict,
+    { threshold: 0.9, select: (root) => root.querySelector('[data-slot="verdict-footer"]') },
   );
   if (!state) return <Booting />;
   const { config, request, result, status, error, guide } = state;
@@ -76,7 +80,9 @@ export function LabScreen() {
           />
         }
       />
-      <div className="flex min-w-0 flex-col gap-8">
+      {/** 안내 중에는 "지금 할 일" 카드가 먼저 보여야 한다. 좁은 화면에서는 한 줄이라
+        *  레일 전체가 카드를 밀어낸다. 일반 모드는 레일이 먼저(모바일 e2e 가 기댄다) */}
+      <div className={cn("flex min-w-0 flex-col gap-8", guide !== null && "order-first md:order-none")}>
         {guide !== null && <GuideCard step={guide} config={config} request={request} result={result} />}
         {cardOnly ? null : empty ? (
           <section className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">{t.emptyResult}</section>

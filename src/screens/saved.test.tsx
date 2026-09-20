@@ -5,6 +5,7 @@ import { RouterProvider, createMemoryRouter } from "react-router";
 import { api } from "@/api/client";
 import { clearLabIntent, peekLabIntent } from "@/app/lab-intent";
 import { resetSaved } from "@/demo/saved";
+import { formatDate } from "@/lib/format";
 import { SavedScreen } from "./saved";
 
 function mount() {
@@ -30,7 +31,9 @@ describe("SavedScreen", () => {
     expect(cards.map((c) => c.getAttribute("aria-label"))).toEqual(["2025-10-15 실험", "2025-04-15 실험", "2024-01-15 실험"]);
     const first = within(cards[0]);
     expect(first.getByText("20거래일")).toBeInTheDocument();
-    expect(first.getByText(/저장 2026-09-13/)).toBeInTheDocument();
+    // 시드는 09:00 UTC — KST 에서는 같은 날이지만, 기계의 시간대에 기대지 않는다
+    const savedDay = formatDate((await api.saved())[0].savedAt);
+    expect(first.getByText(new RegExp(`저장 ${savedDay}`))).toBeInTheDocument();
     expect(first.getByText(/^업종 11개 중 /)).toBeInTheDocument();
     expect(first.getByText(/켠 재료 \d+개/)).toBeInTheDocument();
     expect(first.getByText(/뽑은 업종/)).toBeInTheDocument();

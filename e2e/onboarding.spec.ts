@@ -24,7 +24,8 @@ test("첫 방문자: 랜딩 → 로그인 → 안내 네 단계를 실제 조작
   await expect(page.getByRole("region", { name: /4\/4/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "맞았나" })).toBeVisible();
 
-  await page.getByRole("table").scrollIntoViewIfNeeded();
+  // 표 머리가 아니라 마지막 줄(뽑은 업종 평균)까지 내려가야 4단계가 끝난다
+  await page.locator('[data-slot="verdict-footer"]').scrollIntoViewIfNeeded();
   await expect(list).toBeHidden();
   await expect(page.getByRole("region", { name: /4\/4/ })).toBeHidden();
   await expect(page.getByText(/업종 11개 중 3개/)).toBeVisible(); // 결과는 남는다
