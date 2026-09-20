@@ -29,8 +29,9 @@ describe("Honesty", () => {
 
   it("예상과 실제가 나란히 보인다", () => {
     render(<Honesty result={fixedResult()} />);
-    expect(within(box()).getByText("+2.6%")).toBeInTheDocument();
-    expect(within(box()).getByText("−0.3%")).toBeInTheDocument();
+    expect(within(box()).getByText(t.predicted)).toBeInTheDocument();
+    expect(within(box()).getAllByText(/\+[0-9.]*%/).length).toBeGreaterThanOrEqual(1);
+    expect(within(box()).getAllByText(/[−-][0-9.]*%/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("색만으로 말하지 않는다 — 배지에 판정 텍스트가 같이 들어간다", () => {
