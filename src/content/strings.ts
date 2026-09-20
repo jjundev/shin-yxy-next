@@ -40,6 +40,8 @@ export const strings = {
       saved: "저장됨",
       dirty: "바꾼 세팅을 먼저 계산하세요",
       statusLabel: "설정 상태",
+      rerun: "새로 계산",
+      viewingSaved: (asOf: string) => `저장한 실험을 보는 중 · ${asOf}`,
     },
     whyDescription: {
       summary: `재료를 모아 → ${SIMULATIONS_LABEL}번 굴리고 → 남은 것으로 범위`,
@@ -166,14 +168,47 @@ export const strings = {
       footer: (n: number) => `뽑은 업종 ${n}개 평균`,
       hits: (dir: number, range: number, total: number) => `방향 ${dir}/${total} · 범위 ${range}/${total}`,
     },
+    guide: {
+      title: "첫 실험",
+      skip: "건너뛰기",
+      why: "왜 이렇게 하나요?",
+      terms: "처음 나온 말",
+      stepDone: "완료",
+      progress: (n: number) => `${n}/4`,
+      steps: [
+        {
+          name: "언제로 갈까",
+          head: "예측 시점과 채점 시점이 다릅니다",
+          body: "기준 시점은 예측을 하는 날이고, 확인 기간은 그 예측을 채점할 때까지의 거리다. 왼쪽에서 기준 시점을 하루 옮기거나 확인 기간을 바꿔 보라.",
+        },
+        {
+          name: "무엇을 볼까",
+          head: "그날까지 알 수 있던 재료만 씁니다",
+          body: "이 도구는 미래를 보지 않는다. 기준 시점 전의 일정, 뉴스 판독, 비슷했던 날들만 모은다. 왼쪽에서 재료 하나를 펼쳐 무엇이 들어가는지 보라.",
+        },
+        {
+          name: "계산하기",
+          head: `${SIMULATIONS_LABEL}번 굴려 범위를 만듭니다`,
+          body: `모은 재료로 앞날을 ${SIMULATIONS_LABEL}번 그려 보고, 남은 길로 예상 중앙과 범위를 낸다. 계산하기를 누르라.`,
+        },
+        {
+          name: "결과 읽기",
+          head: "예상, 실제, 판정을 읽습니다",
+          body: "계산은 뽑은 업종과 예상 수익률을 문장으로, 무엇을 뽑았나는 경로 그림으로, 맞았나는 업종마다 예상과 실제를 나란히 놓고 판정한다. 아래 판정 표까지 내려가 보라.",
+        },
+      ],
+    },
   },
   saved: {
     title: "저장소",
     empty: "실험실에서 저장을 누르면 여기 쌓입니다.",
     toLab: "실험실로",
     open: "실험실에서 열기",
-    avg: "평균",
-    bench: "시장",
     tradingDays: "거래일",
+    savedAt: "저장",
+    modules: (n: number) => `켠 재료 ${n}개`,
+    picked: "뽑은 업종",
+    nonePicked: "없음",
+    card: (asOf: string) => `${asOf} 실험`,
   },
 } as const;

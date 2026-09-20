@@ -40,10 +40,7 @@ export function SavedScreen() {
                   {strings.saved.tradingDays}
                 </div>
               </div>
-              <div className="text-sm sm:min-w-0 sm:flex-1">
-                {strings.saved.avg} <span className="num">{formatPct(s.result.avgReturn)}</span>,{" "}
-                {strings.saved.bench} <span className="num">{formatPct(s.result.benchReturn)}</span>
-              </div>
+              <div className="text-sm sm:min-w-0 sm:flex-1">{s.result.avgReturn === null ? "" : formatPct(s.result.avgReturn)}</div>
               <div className="flex items-center gap-3">
                 <span
                   className={cn(
