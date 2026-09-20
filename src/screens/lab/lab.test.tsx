@@ -1,13 +1,14 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RouterProvider, createMemoryRouter } from "react-router";
 import { toast } from "sonner";
 import { api } from "@/api/client";
 import { ApiError, setRunDelay } from "@/demo/adapter";
-import { resetSaved } from "@/demo/saved";
+import { listSaved, resetSaved } from "@/demo/saved";
 import { ThemeProvider } from "@/app/theme";
-import { setOnboarded } from "@/app/onboarded";
+import { clearOnboarded, setOnboarded } from "@/app/onboarded";
+import { clearLabIntent, setLabIntent } from "@/app/lab-intent";
 import { LabScreen } from "./index";
 
 vi.mock("sonner", () => ({ toast: vi.fn() }));
@@ -17,14 +18,28 @@ setRunDelay(() => 0);
 const summary = (_: string, el: Element | null) =>
   el?.tagName === "P" && /업종 11개 중 3개/.test(el.textContent ?? "");
 
+/** 판정 표가 화면에 들어온 척하기. jsdom 에는 IntersectionObserver 가 없다 */
+type IOCb = (entries: { isIntersecting: boolean }[]) => void;
+const observers: IOCb[] = [];
+function stubIO() {
+  observers.length = 0;
+  vi.stubGlobal("IntersectionObserver", class {
+    constructor(cb: IOCb) { observers.push(cb); }
+    observe() {}
+    disconnect() {}
+  });
+}
+
 function mount() {
   const router = createMemoryRouter([{ path: "/lab", element: <LabScreen /> }], { initialEntries: ["/lab"] });
   render(<ThemeProvider><RouterProvider router={router} /></ThemeProvider>);
+  return router;
 }
 
 beforeEach(() => {
   localStorage.clear();
   setOnboarded();
+  clearLabIntent();
   resetSaved();
   vi.mocked(toast).mockClear();
   vi.restoreAllMocks();
@@ -106,5 +121,87 @@ describe("LabScreen", () => {
     expect(document.querySelector('[data-kind="focus"]')?.getAttribute("data-subject")).toMatch(/^2:/);
     await userEvent.click(screen.getByRole("radio", { name: "시뮬레이션 경로 24" }));
     expect(document.querySelectorAll('[data-kind="sample"], [data-kind="dropped"]')).toHaveLength(24);
+  });
+});
+
+describe("LabScreen 안내 모드", () => {
+  beforeEach(() => clearOnboarded());
+
+  it("첫 방문: 체크리스트와 1/4 카드만, 빈 결과 문장은 없다, 재료가 흐리다", async () => {
+    mount();
+    expect(await screen.findByRole("navigation", { name: "첫 실험" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /1\/4 · 예측 시점과 채점 시점이 다릅니다/ })).toBeInTheDocument();
+    expect(screen.queryByText("계산하기를 누르면 결과가 여기에 나옵니다.")).not.toBeInTheDocument();
+    expect(document.getElementById("what-body")!.closest("section")).toHaveClass("opacity-50");
+  });
+
+  it("실제 조작 넷으로 네 단계를 지나면 체크리스트가 사라지고 플래그가 박힌다", async () => {
+    stubIO();
+    mount();
+    await screen.findByRole("navigation", { name: "첫 실험" });
+    await userEvent.click(screen.getByRole("button", { name: "5거래일" }));
+    expect(screen.getByRole("region", { name: /2\/4/ })).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="when"]')).toHaveClass("opacity-50");
+    await userEvent.click(within(screen.getByRole("region", { name: "뉴스" })).getByRole("button", { name: "자세히" }));
+    expect(screen.getByRole("region", { name: /3\/4/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "계산하기" }));
+    expect(await screen.findByRole("region", { name: /4\/4/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "맞았나" })).toBeInTheDocument();
+    expect(observers.length).toBeGreaterThan(0);
+    act(() => observers[observers.length - 1]([{ isIntersecting: true }]));
+    expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /4\/4/ })).not.toBeInTheDocument();
+    expect(localStorage.getItem("shin.onboarded")).toBe("1");
+  });
+
+  it("1단계에서 바로 계산하면 4/4 로 건너뛴다", async () => {
+    mount();
+    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
+    expect(await screen.findByRole("region", { name: /4\/4/ })).toBeInTheDocument();
+    const items = within(screen.getByRole("navigation", { name: "첫 실험" })).getAllByRole("listitem");
+    expect(items[3]).toHaveAttribute("aria-current", "step");
+  });
+
+  it("건너뛰기: 즉시 일반 모드, 빈 결과 문장, 플래그", async () => {
+    mount();
+    await userEvent.click(await screen.findByRole("button", { name: "건너뛰기" }));
+    expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
+    expect(screen.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeInTheDocument();
+    expect(localStorage.getItem("shin.onboarded")).toBe("1");
+  });
+
+  it("카드의 왜 이렇게 하나요? 가 시트를 연다", async () => {
+    mount();
+    await userEvent.click(await screen.findByRole("button", { name: "왜 이렇게 하나요?" }));
+    expect(await screen.findByRole("dialog", { name: "맞았나" })).toBeInTheDocument();
+  });
+});
+
+describe("LabScreen 저장한 실험 보기", () => {
+  it("열기 의도로 들어오면 계산 없이 채워지고, 보는 중 표시와 새로 계산", async () => {
+    const saved = listSaved()[0];
+    const runSpy = vi.spyOn(api, "run");
+    setLabIntent({ kind: "open", saved });
+    mount();
+    expect(await screen.findByRole("heading", { name: "맞았나" })).toBeInTheDocument();
+    expect(runSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보는 중 · 2025-10-15");
+    expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
+    expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "새로 계산" }));
+    await waitFor(() => expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent(""));
+    expect(runSpy).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "계산하기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "저장" })).toBeEnabled();
+  });
+
+  it("안내 의도로 같은 경로에 다시 오면 고정 입력 1/4 부터", async () => {
+    const router = mount();
+    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
+    await screen.findByText(summary);
+    setLabIntent({ kind: "guide" });
+    await act(() => router.navigate("/lab"));
+    expect(await screen.findByRole("region", { name: /1\/4/ })).toBeInTheDocument();
+    expect(screen.queryByText(summary)).not.toBeInTheDocument();
   });
 });

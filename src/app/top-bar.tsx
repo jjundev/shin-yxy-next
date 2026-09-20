@@ -7,6 +7,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/design/ui/tooltip";
 import { strings } from "@/content/strings";
 import { cn } from "@/lib/utils";
+import { setLabIntent } from "./lab-intent";
+import { clearOnboarded } from "./onboarded";
 import { useSavedCount } from "./saved-count";
 import { useTheme, type Theme } from "./theme";
 
@@ -22,8 +24,10 @@ export function TopBar() {
     setTheme(THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length]);
   }
 
+  /** 상위 스펙 5.3: 플래그를 지우고 실험실을 다시 연다. 이미 /lab 이어도 location.key 가 바뀌어 useLab 이 다시 부팅한다 */
   function replayOnboarding() {
-    localStorage.removeItem("shin.onboarded");
+    clearOnboarded();
+    setLabIntent({ kind: "guide" });
     navigate("/lab");
   }
 

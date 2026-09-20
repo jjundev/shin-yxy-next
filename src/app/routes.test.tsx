@@ -77,4 +77,20 @@ describe("routes", () => {
     for (let i = 0; i < 4; i += 1) await userEvent.tab();
     expect(screen.getByText(strings.demoBadge)).toHaveFocus();
   });
+
+  it("메뉴 첫 실험 다시 보기는 플래그를 지우고 안내로 연다", async () => {
+    localStorage.setItem("shin.session", "demo");
+    Element.prototype.hasPointerCapture ??= () => false;
+    Element.prototype.scrollIntoView ??= () => {};
+    mount("/lab");
+    await screen.findByText(strings.lab.emptyResult);
+    // 메뉴는 키보드로 연다. jsdom 에서 userEvent 의 클릭은 이 파일의 앞 테스트가 userEvent 를
+    // 쓴 뒤라면 Radix 트리거의 첫 pointerdown 을 삼킨다. Enter 는 같은 경로를 안정적으로 탄다
+    const trigger = screen.getByRole("button", { name: "메뉴" });
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    await userEvent.click(await screen.findByRole("menuitem", { name: strings.menu.replayOnboarding }));
+    expect(await screen.findByRole("navigation", { name: strings.lab.guide.title })).toBeInTheDocument();
+    expect(localStorage.getItem("shin.onboarded")).toBeNull();
+  });
 });

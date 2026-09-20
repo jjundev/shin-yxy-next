@@ -1,7 +1,13 @@
+import { useRef } from "react";
+import { useLocation } from "react-router";
 import { SummaryLine } from "@/components/summary-line";
 import { VerdictTable } from "@/components/verdict-table";
 import { strings } from "@/content/strings";
 import { Skeleton } from "@/design/ui/skeleton";
+import { useInView } from "@/lib/use-in-view";
+import { Checklist } from "./checklist";
+import { GUIDE_STEPS } from "./guide";
+import { GuideCard } from "./guide-card";
 import { Ingredients } from "./ingredients";
 import { Picks } from "./picks";
 import { LabRail } from "./rail";
@@ -20,16 +26,25 @@ function Booting() {
 }
 
 export function LabScreen() {
-  const { state, dispatch, run, save } = useLab();
+  const location = useLocation();
+  const { state, dispatch, run, save, skipGuide, seeVerdict } = useLab(location.key);
+  const verdictRef = useRef<HTMLDivElement>(null);
+  useInView(verdictRef, state?.guide === 4, seeVerdict);
   if (!state) return <Booting />;
-  const { config, request, result, status, error } = state;
+  const { config, request, result, status, error, guide } = state;
   const t = strings.lab;
+  const spec = guide === null ? null : GUIDE_STEPS[guide - 1];
+  /** 안내 1~3단계는 결과 영역에 카드만 (상위 스펙 5.1) */
+  const cardOnly = guide !== null && guide < 4;
   const empty = result === null && status === "idle";
   const samples = result?.paths.subjects.find((s) => s.round === 1)?.samples.length ?? 0;
 
   return (
     <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
       <LabRail
+        checklist={guide !== null && <Checklist step={guide} onSkip={skipGuide} />}
+        dim={spec?.dim}
+        openIngredients={guide === 2}
         when={
           <WhenSection
             config={config}
@@ -51,11 +66,13 @@ export function LabScreen() {
             config={config}
             request={request}
             onModules={(keys, on) => dispatch({ type: "module", keys, on })}
+            onExpand={(section) => dispatch({ type: "expand", section })}
           />
         }
       />
       <div className="flex min-w-0 flex-col gap-8">
-        {empty ? (
+        {guide !== null && <GuideCard step={guide} config={config} request={request} result={result} />}
+        {cardOnly ? null : empty ? (
           <section className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">{t.emptyResult}</section>
         ) : (
           <>
@@ -95,19 +112,21 @@ export function LabScreen() {
                 />
               )}
             </ResultSection>
-            <ResultSection
-              title={t.verdict.title}
-              status={status}
-              error={error}
-              onRetry={run}
-              why={
-                <WhySheet title={t.verdict.title} description={t.whyDescription.verdict}>
-                  <WhyVerdict asOf={request.asOf} />
-                </WhySheet>
-              }
-            >
-              {result && <VerdictTable result={result} />}
-            </ResultSection>
+            <div ref={verdictRef}>
+              <ResultSection
+                title={t.verdict.title}
+                status={status}
+                error={error}
+                onRetry={run}
+                why={
+                  <WhySheet title={t.verdict.title} description={t.whyDescription.verdict}>
+                    <WhyVerdict asOf={request.asOf} />
+                  </WhySheet>
+                }
+              >
+                {result && <VerdictTable result={result} />}
+              </ResultSection>
+            </div>
           </>
         )}
       </div>
