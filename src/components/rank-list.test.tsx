@@ -32,4 +32,14 @@ describe("RankList", () => {
     render(<RankList subjects={layer1} focus={{ round: 1, subjectId: 7 }} onFocus={() => {}} />);
     expect(screen.getByRole("button", { name: /금융/ })).toHaveAttribute("aria-pressed", "true");
   });
+  it("실제가 없으면 예상값 내림차순, 범위 배지 없음", () => {
+    const noActual = layer1.map((s) => ({ ...s, actual: [] }));
+    const top = [...noActual].sort((a, b) => b.center - a.center)[0];
+    render(<RankList subjects={noActual} focus={null} onFocus={() => {}} />);
+    const items = screen.getAllByRole("listitem");
+    expect(within(items[0]).getByText(top.name)).toBeInTheDocument();
+    expect(items[0]).toHaveTextContent("예상");
+    expect(screen.queryByText("범위 ✓")).toBeNull();
+    expect(screen.queryByText("범위 ✗")).toBeNull();
+  });
 });

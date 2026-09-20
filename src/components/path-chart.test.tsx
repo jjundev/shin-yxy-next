@@ -34,4 +34,18 @@ describe("PathChart", () => {
     expect(container.querySelectorAll('[data-kind="expected"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-kind="actual"]')).toHaveLength(0);
   });
+  it("체에 걸린 길은 회색 점선으로 갈린다", () => {
+    const { container } = render(<PathChart dates={result.paths.dates} subjects={layer1} focus={{ round: 1, subjectId: 5 }} mode="rolled" />);
+    expect(container.querySelectorAll('[data-kind="sample"]')).toHaveLength(24);
+    expect(container.querySelectorAll('[data-kind="dropped"]')).toHaveLength(0);
+
+    const cut = layer1.map((s) =>
+      s.round === 1 && s.subjectId === 5 ? { ...s, fates: s.fates.map((f, i) => (i < 3 ? "CUT" : f)) } : s,
+    );
+    const { container: c2 } = render(<PathChart dates={result.paths.dates} subjects={cut} focus={{ round: 1, subjectId: 5 }} mode="rolled" />);
+    expect(c2.querySelectorAll('[data-kind="sample"]')).toHaveLength(21);
+    const dropped = c2.querySelectorAll('[data-kind="dropped"]');
+    expect(dropped).toHaveLength(3);
+    for (const el of dropped) expect(el).toHaveAttribute("stroke-dasharray", "3 3");
+  });
 });
