@@ -1,5 +1,6 @@
 import {
   ApiError, defaultRequest, getConfig, getEvents, getNews, getSession, login, runLab,
+  type RunOptions,
 } from "@/demo/adapter";
 import { listSaved, saveExperiment, subscribeSaved } from "@/demo/saved";
 import type {
@@ -13,7 +14,8 @@ import { NEWS_DAYS } from "@/content/constants";
 export const api = {
   config: async (): Promise<LabConfig> => getConfig(),
   defaultRequest: (config?: LabConfig): RunRequest => defaultRequest(config),
-  run: (req: RunRequest): Promise<RunResult> => runLab(req),
+  /** opts.delayMs 0 은 원본의 350~700ms 지연을 건너뛴다. 랜딩 증거는 마운트 즉시 필요하다 */
+  run: (req: RunRequest, opts?: RunOptions): Promise<RunResult> => runLab(req, opts),
   news: async (asOf: string, days = NEWS_DAYS): Promise<NewsResponse> => getNews(asOf, days),
   events: async (asOf: string, horizonDays: number): Promise<EventsResponse> =>
     getEvents(asOf, horizonDays),
