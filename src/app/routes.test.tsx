@@ -46,7 +46,7 @@ describe("routes", () => {
     const router = mount("/login");
     await userEvent.click(screen.getByRole("button", { name: strings.login.enter }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/lab"));
-    expect(await screen.findByText(strings.lab.emptyResult)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: strings.lab.summary.title })).toBeInTheDocument();
   });
 
   it("저장소는 시드 셋을 보여준다", async () => {

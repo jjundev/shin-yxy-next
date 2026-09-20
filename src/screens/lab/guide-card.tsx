@@ -1,6 +1,7 @@
 import { strings } from "@/content/strings";
 import { TERM_GLOSSARY, label } from "@/content/labels";
 import type { LabConfig, RunRequest, RunResult } from "@/demo/types";
+import { Button } from "@/design/ui/button";
 import { GUIDE_STEPS, type GuideStep } from "./guide";
 import { WhyCalc, WhySheet, WhyVerdict } from "./why-sheet";
 
@@ -9,10 +10,11 @@ interface GuideCardProps {
   config: LabConfig;
   request: RunRequest;
   result: RunResult | null;
+  onNext?: () => void;
 }
 
 /** 오른쪽 결과 영역의 안내 카드 한 장. "지금 할 일"과 이유, 처음 나온 용어, 같은 섹션의 "왜?" 시트 (상위 스펙 5.1, 3.3, 3.4) */
-export function GuideCard({ step, config, request, result }: GuideCardProps) {
+export function GuideCard({ step, config, request, result, onNext }: GuideCardProps) {
   const t = strings.lab.guide;
   const spec = GUIDE_STEPS[step - 1];
   const copy = t.steps[step - 1];
@@ -36,10 +38,15 @@ export function GuideCard({ step, config, request, result }: GuideCardProps) {
           ))}
         </dl>
       )}
-      <div>
+      <div className="flex items-center gap-2">
         <WhySheet title={why.title} description={why.description} triggerLabel={t.why}>
           {why.body}
         </WhySheet>
+        {step === 3 && onNext && (
+          <Button size="sm" onClick={onNext}>
+            {strings.lab.guide.viewResult}
+          </Button>
+        )}
       </div>
     </section>
   );

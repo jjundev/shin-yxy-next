@@ -53,7 +53,7 @@ export type LabAction =
   /** 판정 표가 화면에 들어왔다. 안내 4단계 완료 조건 */
   | { type: "verdict:seen" }
   | { type: "guide:skip" }
-  /** 저장한 실험을 다시 계산하지 않고 연다 */
+  | { type: "guide:next" }
   | { type: "open"; request: RunRequest; result: RunResult };
 
 /** 원본 ij: 이 모듈이 도는 라운드 중 켜진 수 */
@@ -106,15 +106,15 @@ function withResult(s: LabState, request: RunRequest, result: RunResult): LabSta
 export function labReducer(s: LabState, a: LabAction): LabState {
   switch (a.type) {
     case "asOf":
-      return { ...s, request: { ...s.request, asOf: a.value }, guide: advanceGuide(s.guide, 1) };
+      return { ...s, request: { ...s.request, asOf: a.value }, viewingSaved: false, guide: advanceGuide(s.guide, 1) };
     case "horizon":
-      return { ...s, request: { ...s.request, horizonDays: a.value }, guide: advanceGuide(s.guide, 1) };
+      return { ...s, request: { ...s.request, horizonDays: a.value }, viewingSaved: false, guide: advanceGuide(s.guide, 1) };
     case "module":
-      return { ...s, request: setModules(s.request, s.config, a.keys, a.on) };
+      return { ...s, request: setModules(s.request, s.config, a.keys, a.on), viewingSaved: false };
     case "expand":
       return { ...s, guide: advanceGuide(s.guide, 2) };
     case "run:start":
-      return { ...s, status: "running", error: null, guide: advanceGuide(s.guide, 3) };
+      return { ...s, status: "running", error: null };
     case "run:ok":
       return withResult(s, a.request, a.result);
     case "run:fail":
@@ -127,6 +127,8 @@ export function labReducer(s: LabState, a: LabAction): LabState {
       return { ...s, guide: advanceGuide(s.guide, 4) };
     case "guide:skip":
       return { ...s, guide: null };
+    case "guide:next":
+      return { ...s, guide: advanceGuide(s.guide, 3) };
     case "layer": {
       /** 다른 층의 대상에 집중한 채로 층을 바꾸면 차트와 순위가 어긋난다. 시장으로 되돌린다 */
       const stale = s.focus !== null && s.focus.round !== 0 && s.focus.round !== a.value;
@@ -201,18 +203,46 @@ export function useLab(locationKey?: string): LabApi {
   }, [guide]);
 
   const request = state?.request;
-  const status = state?.status;
-  const run = useCallback(async () => {
-    if (!request || status === "running") return;
-    const snapshot = structuredClone(request);
+  const viewingSaved = state?.viewingSaved;
+
+  const latestSeq = useRef(0);
+  const runWithRequest = useCallback(async (req: RunRequest) => {
+    const seq = ++latestSeq.current;
+    const snapshot = structuredClone(req);
     dispatch({ type: "run:start" });
     try {
-      const result = await api.run(snapshot);
-      dispatch({ type: "run:ok", request: snapshot, result });
+      const res = await api.run(snapshot);
+      if (seq === latestSeq.current) {
+        dispatch({ type: "run:ok", request: snapshot, result: res });
+      }
     } catch (e) {
-      dispatch({ type: "run:fail", message: isApiError(e) ? e.message : strings.lab.runFailed });
+      if (seq === latestSeq.current) {
+        dispatch({ type: "run:fail", message: isApiError(e) ? e.message : strings.lab.runFailed });
+      }
     }
-  }, [request, status]);
+  }, []);
+
+  const reqKey = request ? JSON.stringify(request) : null;
+  const lastRanReq = useRef<string | null>(null);
+
+  const run = useCallback(async () => {
+    if (!request) return;
+    lastRanReq.current = reqKey;
+    await runWithRequest(request);
+  }, [request, reqKey, runWithRequest]);
+
+  useEffect(() => {
+    if (!request || viewingSaved) return;
+    if (lastRanReq.current === reqKey) return;
+
+    const delay = lastRanReq.current === null ? 0 : 250;
+    const timer = setTimeout(() => {
+      lastRanReq.current = reqKey;
+      runWithRequest(request);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [reqKey, viewingSaved, request, runWithRequest]);
 
   /** 같은 결과가 두 번 저장되지 않게 하는 빗장 */
   const saving = useRef(false);

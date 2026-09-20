@@ -112,16 +112,15 @@ describe("labReducer", () => {
     expect(s.guide).toBe(2);
     s = labReducer(s, { type: "expand", section: "news" });
     expect(s.guide).toBe(3);
-    s = labReducer(s, { type: "run:start" });
+    s = labReducer(s, { type: "guide:next" });
     expect(s.guide).toBe(4);
     s = labReducer(s, { type: "verdict:seen" });
     expect(s.guide).toBeNull();
   });
 
-  it("안내: 1단계에서 바로 계산하면 4단계, 건너뛰면 null, 일반 모드는 안 움직인다", () => {
+  it("안내: 건너뛰면 null, 일반 모드는 안 움직인다", () => {
     let s = initialLabState(config, api.defaultRequest(config), true);
-    s = labReducer(s, { type: "run:start" });
-    expect(s.guide).toBe(4);
+    expect(s.guide).toBe(1);
     s = labReducer(s, { type: "guide:skip" });
     expect(s.guide).toBeNull();
     const plain = labReducer(fresh(), { type: "expand", section: "cycle" });
@@ -193,20 +192,16 @@ describe("useLab", () => {
   });
 
   it("어댑터가 거부하면 그 메시지를 오류로 든다", async () => {
-    vi.spyOn(api, "run").mockRejectedValueOnce(new ApiError(404, "데모에는 없는 화면이다"));
+    vi.spyOn(api, "run").mockRejectedValue(new ApiError(404, "데모에는 없는 화면이다"));
     const { result } = renderHook(() => useLab());
-    await waitFor(() => expect(result.current.state).not.toBeNull());
-    await act(() => result.current.run());
-    expect(result.current.state?.status).toBe("error");
+    await waitFor(() => expect(result.current.state?.status).toBe("error"));
     expect(result.current.state?.error).toBe("데모에는 없는 화면이다");
   });
 
   it("보통 오류는 실행 실패로 바꾼다", async () => {
-    vi.spyOn(api, "run").mockRejectedValueOnce(new Error("boom"));
+    vi.spyOn(api, "run").mockRejectedValue(new Error("boom"));
     const { result } = renderHook(() => useLab());
-    await waitFor(() => expect(result.current.state).not.toBeNull());
-    await act(() => result.current.run());
-    expect(result.current.state?.error).toBe("실행 실패");
+    await waitFor(() => expect(result.current.state?.error).toBe("실행 실패"));
   });
 
   it("플래그가 없으면 안내로 열리고, 건너뛰면 플래그가 박힌다", async () => {
@@ -223,7 +218,11 @@ describe("useLab", () => {
     localStorage.clear();
     const { result } = renderHook(() => useLab());
     await waitFor(() => expect(result.current.state).not.toBeNull());
-    await act(() => result.current.run());
+    act(() => {
+      result.current.dispatch({ type: "horizon", value: 5 });
+      result.current.dispatch({ type: "expand", section: "news" });
+      result.current.dispatch({ type: "guide:next" });
+    });
     expect(result.current.state?.guide).toBe(4);
     act(() => result.current.seeVerdict());
     expect(result.current.state?.guide).toBeNull();

@@ -39,6 +39,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   --container-content: var(--content-width);
   --container-wide: var(--wide-width);
+  --breakpoint-wide: 1400px;
 }
 
 @layer base {

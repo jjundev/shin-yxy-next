@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RouterProvider, createMemoryRouter } from "react-router";
 import { toast } from "sonner";
 import { api } from "@/api/client";
-import { ApiError, runLab, setRunDelay } from "@/demo/adapter";
+import { ApiError, setRunDelay } from "@/demo/adapter";
 import { listSaved, resetSaved } from "@/demo/saved";
 import { ThemeProvider } from "@/app/theme";
 import { clearOnboarded, setOnboarded } from "@/app/onboarded";
@@ -55,19 +55,17 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("LabScreen", () => {
-  it("처음엔 레일과 빈 결과 한 줄, 저장은 비활성", async () => {
+  it("처음엔 레일과 자동 계산된 결과, 저장이 열린다", async () => {
     mount();
-    expect(await screen.findByRole("button", { name: "계산하기" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "저장" })).toBeDisabled();
-    expect(screen.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeInTheDocument();
-    expect(screen.getByRole("slider", { name: "기준 시점" })).toBeInTheDocument();
+    expect(await screen.findByRole("slider", { name: "기준 시점" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "계산하기" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "20거래일" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.queryByRole("heading", { name: "맞았나" })).not.toBeInTheDocument();
+    expect(await screen.findByText(summary)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "저장" })).toBeEnabled();
   });
 
-  it("계산하면 세 섹션이 채워지고 저장이 열린다", async () => {
+  it("자동 계산으로 세 섹션이 채워지고 저장이 열린다", async () => {
     mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
     expect(await screen.findByText(summary)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "계산" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "무엇을 뽑았나" })).toBeInTheDocument();
@@ -78,16 +76,15 @@ describe("LabScreen", () => {
     expect(screen.getAllByRole("button", { name: "왜?" })).toHaveLength(3);
   });
 
-  it("저장하면 토스트와 저장됨 잠금, 설정을 바꾸면 dirty 한 줄", async () => {
+  it("저장하면 토스트와 저장됨 잠금, 설정을 바꾸면 자동 재계산", async () => {
     mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
     await screen.findByText(summary);
     await userEvent.click(screen.getByRole("button", { name: "저장" }));
     await waitFor(() => expect(toast).toHaveBeenCalledWith("저장됨 · 2026-01-15", { id: "saved" }));
     expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
     expect((await api.saved()).length).toBe(4);
     await userEvent.click(screen.getByRole("button", { name: "5거래일" }));
-    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("바꾼 세팅을 먼저 계산하세요");
+    await waitFor(() => expect(screen.getByRole("button", { name: "저장" })).toBeEnabled());
     expect(screen.getByText(summary)).toBeInTheDocument(); // 결과 유지
   });
 
@@ -104,7 +101,6 @@ describe("LabScreen", () => {
   it("어댑터가 거부하면 세 섹션에 한 줄과 다시 시도, 다시 시도하면 된다", async () => {
     vi.spyOn(api, "run").mockRejectedValueOnce(new ApiError(404, "데모에는 없는 화면이다: /nope"));
     mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
     expect(await screen.findAllByText("데모에는 없는 화면이다: /nope")).toHaveLength(3);
     const retry = screen.getAllByRole("button", { name: "다시 시도" });
     expect(retry).toHaveLength(3);
@@ -114,7 +110,6 @@ describe("LabScreen", () => {
 
   it("층과 모드를 바꾸고 순위를 눌러 집중한다", async () => {
     mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
     await screen.findByText(summary);
     // 업종 하나에 집중한 채 층을 바꾸면 집중은 시장으로 돌아간다
     await userEvent.click(within(screen.getByRole("list", { name: "업종 순위" })).getByRole("button", { name: /에너지/ }));
@@ -127,6 +122,48 @@ describe("LabScreen", () => {
     expect(document.querySelector('[data-kind="focus"]')?.getAttribute("data-subject")).toMatch(/^2:/);
     await userEvent.click(screen.getByRole("radio", { name: "시뮬레이션 경로 24" }));
     expect(document.querySelectorAll('[data-kind="sample"], [data-kind="dropped"]')).toHaveLength(24);
+  });
+
+  it("설정 패널을 접으면 숨겨지고 설정 열기 버튼으로 복원할 수 있다", async () => {
+    mount();
+    const collapseBtn = await screen.findByRole("button", { name: "설정 패널 접기" });
+    expect(collapseBtn).toBeInTheDocument();
+    const separator = screen.getByRole("separator", { name: "설정 패널 너비 조절" });
+    expect(separator).toHaveAttribute("aria-valuenow", "320");
+    expect(separator).toHaveAttribute("aria-valuemin", "260");
+    expect(separator).toHaveAttribute("aria-valuemax", "480");
+
+    await userEvent.click(collapseBtn);
+    expect(localStorage.getItem("shin.lab.rail-collapsed")).toBe("true");
+    const openBtn = screen.getByRole("button", { name: "설정 패널 열기" });
+    expect(openBtn).toBeInTheDocument();
+
+    await userEvent.click(openBtn);
+    expect(localStorage.getItem("shin.lab.rail-collapsed")).toBe("false");
+    expect(screen.getByRole("button", { name: "설정 패널 접기" })).toBeInTheDocument();
+  });
+
+  it("우측 분석 인스펙터 드로어 열기/접기 및 리사이즈 분할선", async () => {
+    mount();
+    // 초기 jsdom(폭 1024)에서는 기본 접힘 -> "분석 열기" 버튼이 존재
+    const openInspectorBtn = await screen.findByRole("button", { name: "분석 열기" });
+    expect(openInspectorBtn).toBeInTheDocument();
+
+    // 열기 클릭
+    await userEvent.click(openInspectorBtn);
+    expect(localStorage.getItem("shin.lab.right-drawer-collapsed")).toBe("false");
+    expect(screen.getByRole("complementary", { name: "분석 인스펙터" })).toBeInTheDocument();
+
+    const rightSeparator = screen.getByRole("separator", { name: "분석 패널 너비 조절" });
+    expect(rightSeparator).toHaveAttribute("aria-valuenow", "340");
+    expect(rightSeparator).toHaveAttribute("aria-valuemin", "280");
+    expect(rightSeparator).toHaveAttribute("aria-valuemax", "500");
+
+    // 접기 클릭
+    const collapseInspectorBtn = screen.getByRole("button", { name: "분석 패널 접기" });
+    await userEvent.click(collapseInspectorBtn);
+    expect(localStorage.getItem("shin.lab.right-drawer-collapsed")).toBe("true");
+    expect(screen.queryByRole("complementary", { name: "분석 인스펙터" })).not.toBeInTheDocument();
   });
 });
 
@@ -149,15 +186,10 @@ describe("LabScreen 안내 모드", () => {
     expect(screen.getByRole("region", { name: /2\/4/ })).toBeInTheDocument();
     expect(document.querySelector('[data-slot="when"]')).toHaveClass("opacity-50");
     await userEvent.click(within(screen.getByRole("region", { name: "뉴스" })).getByRole("button", { name: "자세히" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.getByRole("region", { name: /3\/4/ })).toBeInTheDocument();
-    /** 계산이 도는 동안(뼈대)에는 관찰을 걸지 않는다 — 키 큰 화면에서 안내가 바로 끝나 버린다 */
-    let release!: () => void;
-    const gate = new Promise<void>((r) => { release = r; });
-    vi.spyOn(api, "run").mockImplementationOnce((req) => gate.then(() => runLab(req)));
-    await userEvent.click(screen.getByRole("button", { name: "계산하기" }));
+    await userEvent.click(screen.getByRole("button", { name: "결과 확인하기" }));
     expect(await screen.findByRole("region", { name: /4\/4/ })).toBeInTheDocument();
-    expect(observers).toHaveLength(0);
-    await act(async () => { release(); await gate; });
     expect(await screen.findByRole("heading", { name: "맞았나" })).toBeInTheDocument();
     expect(observers).toHaveLength(1);
     /** 섹션 머리가 아니라 판정 표의 마지막 줄을 본다 — 키 큰 화면에서 바로 끝나지 않도록 */
@@ -172,9 +204,13 @@ describe("LabScreen 안내 모드", () => {
 
   it("계산이 거부되면 관찰을 걸지 않고 4/4 카드와 건너뛰기가 남는다", async () => {
     stubIO();
-    vi.spyOn(api, "run").mockRejectedValueOnce(new ApiError(404, "데모에는 없는 화면이다: /nope"));
+    vi.spyOn(api, "run").mockRejectedValue(new ApiError(404, "데모에는 없는 화면이다: /nope"));
     mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
+    await screen.findByRole("navigation", { name: "첫 실험" });
+    await userEvent.click(screen.getByRole("button", { name: "5거래일" }));
+    await userEvent.click(within(screen.getByRole("region", { name: "뉴스" })).getByRole("button", { name: "자세히" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "결과 확인하기" }));
     expect(await screen.findAllByText("데모에는 없는 화면이다: /nope")).toHaveLength(3);
     expect(observers).toHaveLength(0);
     expect(screen.getByRole("region", { name: /4\/4/ })).toBeInTheDocument();
@@ -182,19 +218,10 @@ describe("LabScreen 안내 모드", () => {
     expect(localStorage.getItem("shin.onboarded")).toBeNull();
   });
 
-  it("1단계에서 바로 계산하면 4/4 로 건너뛴다", async () => {
-    mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
-    expect(await screen.findByRole("region", { name: /4\/4/ })).toBeInTheDocument();
-    const items = within(screen.getByRole("navigation", { name: "첫 실험" })).getAllByRole("listitem");
-    expect(items[3]).toHaveAttribute("aria-current", "step");
-  });
-
-  it("건너뛰기: 즉시 일반 모드, 빈 결과 문장, 플래그", async () => {
+  it("건너뛰기: 즉시 일반 모드, 플래그", async () => {
     mount();
     await userEvent.click(await screen.findByRole("button", { name: "건너뛰기" }));
     expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
-    expect(screen.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeInTheDocument();
     expect(localStorage.getItem("shin.onboarded")).toBe("1");
   });
 
@@ -204,8 +231,7 @@ describe("LabScreen 안내 모드", () => {
     expect(column).toHaveClass("order-first");
     expect(column).toHaveClass("md:order-none");
     await userEvent.click(screen.getByRole("button", { name: "건너뛰기" }));
-    const normal = screen.getByText("계산하기를 누르면 결과가 여기에 나옵니다.").parentElement!;
-    expect(normal).not.toHaveClass("order-first");
+    expect(column).not.toHaveClass("order-first");
   });
 
   it("카드의 왜 이렇게 하나요? 가 시트를 연다", async () => {
@@ -216,7 +242,7 @@ describe("LabScreen 안내 모드", () => {
 });
 
 describe("LabScreen 저장한 실험 보기", () => {
-  it("열기 의도로 들어오면 계산 없이 채워지고, 보는 중 표시와 새로 계산", async () => {
+  it("열기 의도로 들어오면 계산 없이 채워지고, 보는 중 표시와 변경 시 자동 계산", async () => {
     const saved = listSaved()[0];
     const runSpy = vi.spyOn(api, "run");
     setLabIntent({ kind: "open", saved });
@@ -226,16 +252,14 @@ describe("LabScreen 저장한 실험 보기", () => {
     expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보는 중 · 2025-10-15");
     expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
     expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "새로 계산" }));
+    await userEvent.click(screen.getByRole("button", { name: "하루 전" }));
+    await waitFor(() => expect(runSpy).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent(""));
-    expect(runSpy).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("button", { name: "계산하기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "저장" })).toBeEnabled();
   });
 
   it("안내 의도로 같은 경로에 다시 오면 고정 입력 1/4 부터", async () => {
     const router = mount();
-    await userEvent.click(await screen.findByRole("button", { name: "계산하기" }));
     await screen.findByText(summary);
     setLabIntent({ kind: "guide" });
     await act(() => router.navigate("/lab"));

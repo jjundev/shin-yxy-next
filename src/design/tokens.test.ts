@@ -31,6 +31,6 @@ describe("tokens.css", () => {
     const light = block(":root");
     expect(light).toContain("--radius: 8px");
     expect(light).toContain("--content-width: 720px");
-    expect(light).toContain("--wide-width: 1200px");
+    expect(light).toContain("--wide-width: 1536px");
   });
 });

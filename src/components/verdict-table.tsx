@@ -1,40 +1,17 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { strings } from "@/content/strings";
-import { label } from "@/content/labels";
-import type { Contribution, InstrumentRow, PathSubject, RunResult, Subject } from "@/demo/types";
-import { inRange, selectedHits, subjectVerdict, type SubjectVerdict } from "@/demo/verdict";
+import type { InstrumentRow, PathSubject, RunResult, Subject } from "@/demo/types";
+import { inRange, selectedHits, subjectVerdict } from "@/demo/verdict";
 import { formatPct, horizonLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { sameFocus, type Focus } from "./focus";
 import { Sparkline } from "./sparkline";
+import { pickState, tone, topShifts, VERDICT_TONE } from "./verdict-util";
 
 const t = strings.lab.verdict;
 
-function tone(v: number | null): string | undefined {
-  return v === null ? undefined : v >= 0 ? "text-up" : "text-down";
-}
-
-const VERDICT_TONE: Record<SubjectVerdict, string> = {
-  SUCCESS: "bg-accent text-accent-foreground",
-  DIRECTION_ONLY: "border text-foreground",
-  FAIL: "bg-muted text-muted-foreground",
-  PENDING: "border text-muted-foreground",
-};
-
-function pickState(s: Subject, isMarket: boolean): string {
-  if (isMarket) return t.pick.base;
-  if (s.selected) return label("뽑음");
-  if (s.excludedStage === "BELOW_START") return t.pick.belowStart;
-  if (s.excludedStage === "FILTER") return t.pick.filtered;
-  return label("안 뽑음");
-}
-
-/** 방향을 민 재료 상위 셋. 원본 "무엇이 밀었나" */
-function topShifts(c: Contribution[]): Contribution[] {
-  return c.filter((x) => x.branch === "SHIFT").sort((a, b) => Math.abs(b.value) - Math.abs(a.value)).slice(0, 3);
-}
-
-function Tri({ s }: { s: Subject }) {
+export function Tri({ s }: { s: Subject }) {
   const up = Math.round(s.upProbability * 100);
   const flat = Math.round(s.flatProbability * 100);
   const down = Math.max(0, 100 - up - flat);
@@ -56,20 +33,30 @@ interface RowProps {
   leader: InstrumentRow | undefined;
   path: PathSubject | undefined;
   horizon: string;
+  focus?: Focus | null;
+  onFocus?: (f: Focus) => void;
 }
 
-function Row({ s, isMarket, leader, path, horizon }: RowProps) {
+function Row({ s, isMarket, leader, path, horizon, focus, onFocus }: RowProps) {
   const [open, setOpen] = useState(false);
   const verdict = subjectVerdict(s);
   const name = isMarket ? t.market : s.name;
   const shifts = topShifts(s.contributions);
+  const f: Focus = { round: isMarket ? 0 : 1, subjectId: s.subjectId };
+  const isFocused = sameFocus(f, focus ?? null);
+
+  const handleClick = () => {
+    setOpen((o) => !o);
+    onFocus?.(f);
+  };
+
   return (
     <>
-      <tr className={cn("border-t", !isMarket && !s.selected && "text-muted-foreground")}>
+      <tr className={cn("border-t transition-colors", isFocused && "bg-accent/40", !isMarket && !s.selected && "text-muted-foreground")}>
         <td className="py-2 pr-2">
-          <button type="button" className="inline-flex items-center gap-1 text-left" aria-expanded={open} aria-label={t.detail(name)} onClick={() => setOpen((o) => !o)}>
+          <button type="button" className="inline-flex items-center gap-1 text-left cursor-pointer" aria-expanded={open} aria-label={t.detail(name)} onClick={handleClick}>
             {open ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
-            <span className="text-foreground">{name}</span>
+            <span className={cn("text-foreground", isFocused && "font-semibold")}>{name}</span>
           </button>
         </td>
         <td className="py-2 pr-2">
@@ -114,7 +101,13 @@ function Row({ s, isMarket, leader, path, horizon }: RowProps) {
   );
 }
 
-export function VerdictTable({ result }: { result: RunResult }) {
+export interface VerdictTableProps {
+  result: RunResult;
+  focus?: Focus | null;
+  onFocus?: (f: Focus) => void;
+}
+
+export function VerdictTable({ result, focus, onFocus }: VerdictTableProps) {
   const horizon = horizonLabel(result.horizonDays);
   const leaderOf = (sectorId: number) => result.rows.find((r) => r.sectorId === sectorId);
   const pathOf = (round: 0 | 1, subjectId: number) =>
@@ -143,9 +136,9 @@ export function VerdictTable({ result }: { result: RunResult }) {
           </tr>
         </thead>
         <tbody>
-          <Row s={result.market} isMarket leader={undefined} path={pathOf(0, result.market.subjectId)} horizon={horizon} />
+          <Row s={result.market} isMarket leader={undefined} path={pathOf(0, result.market.subjectId)} horizon={horizon} focus={focus} onFocus={onFocus} />
           {result.round1.estimates.map((s) => (
-            <Row key={s.subjectId} s={s} isMarket={false} leader={leaderOf(s.subjectId)} path={pathOf(1, s.subjectId)} horizon={horizon} />
+            <Row key={s.subjectId} s={s} isMarket={false} leader={leaderOf(s.subjectId)} path={pathOf(1, s.subjectId)} horizon={horizon} focus={focus} onFocus={onFocus} />
           ))}
         </tbody>
         {picked.length > 0 && (

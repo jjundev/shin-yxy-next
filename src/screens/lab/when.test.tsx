@@ -45,14 +45,13 @@ describe("WhenSection", () => {
 });
 
 describe("WhenSection 저장한 실험 보기", () => {
-  it("보는 중이면 상태 줄과 새로 계산 버튼, 저장은 저장됨으로 잠김", () => {
+  it("보는 중이면 상태 줄, 저장은 저장됨으로 잠김", () => {
     render(<WhenSection {...plain} hasResult viewingSaved saved />);
     expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보는 중 · 2026-01-15");
-    expect(screen.getByRole("button", { name: "새로 계산" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
   });
-  it("보는 중이라도 설정을 바꾸면 dirty 줄이 이긴다", () => {
-    render(<WhenSection {...plain} hasResult viewingSaved saved dirty />);
-    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("바꾼 세팅을 먼저 계산하세요");
+  it("계산 중이면 계산 중 상태를 표시한다", () => {
+    render(<WhenSection {...plain} hasResult viewingSaved saved status="running" />);
+    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("계산 중…");
   });
 });

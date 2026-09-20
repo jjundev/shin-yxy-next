@@ -175,6 +175,7 @@ export const strings = {
       terms: "처음 나온 말",
       stepDone: "완료",
       progress: (n: number) => `${n}/4`,
+      viewResult: "결과 확인하기",
       steps: [
         {
           name: "언제로 갈까",
@@ -187,9 +188,9 @@ export const strings = {
           body: "이 도구는 미래를 보지 않는다. 기준 시점 전의 일정, 뉴스 판독, 비슷했던 날들만 모은다. 왼쪽에서 재료 하나를 펼쳐 무엇이 들어가는지 보라.",
         },
         {
-          name: "계산하기",
+          name: "자동 계산",
           head: `${SIMULATIONS_LABEL}번 굴려 범위를 만듭니다`,
-          body: `모은 재료로 앞날을 ${SIMULATIONS_LABEL}번 그려 보고, 남은 길로 예상 중앙과 범위를 낸다. 계산하기를 누르라.`,
+          body: `모은 재료로 앞날을 ${SIMULATIONS_LABEL}번 그려 보고, 남은 길로 예상 중앙과 범위를 낸다. 날짜나 재료를 바꾸면 자동으로 계산된다.`,
         },
         {
           name: "결과 읽기",

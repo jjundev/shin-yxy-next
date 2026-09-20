@@ -59,3 +59,51 @@ test("모바일: 무엇으로는 접혀 있고, 표에서 두 열이 숨는다",
   await expect(page.getByRole("columnheader", { name: /예상 흐름/ })).toBeHidden();
   await expect(page.getByRole("columnheader", { name: "상승 · 횡보 · 하락" })).toBeHidden();
 });
+
+test("데스크톱: 좌측 설정 드로어 접기/펼치기 및 리사이즈", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop only");
+  await enter(page);
+  const collapseBtn = page.getByRole("button", { name: "설정 패널 접기" });
+  await expect(collapseBtn).toBeVisible();
+
+  // 접기 테스트
+  await collapseBtn.click();
+  await expect(page.getByRole("complementary", { name: "설정" })).toBeHidden();
+  const openBtn = page.getByRole("button", { name: "설정 패널 열기" });
+  await expect(openBtn).toBeVisible();
+
+  // 열기 테스트
+  await openBtn.click();
+  await expect(page.getByRole("complementary", { name: "설정" })).toBeVisible();
+
+  // 리사이즈 핸들 확인
+  const separator = page.getByRole("separator", { name: "설정 패널 너비 조절" });
+  await expect(separator).toBeVisible();
+  await expect(separator).toHaveAttribute("aria-valuenow", "320");
+});
+
+test("데스크톱: 우측 분석 드로어 열기/접기 및 리사이즈", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop only");
+  await enter(page);
+
+  // 1280px 기본 뷰포트에서는 기본 접힘 상태 -> "분석 열기" 버튼 노출
+  const openInspectorBtn = page.getByRole("button", { name: "분석 열기" });
+  await expect(openInspectorBtn).toBeVisible();
+
+  // 열기 클릭
+  await openInspectorBtn.click();
+  const inspector = page.getByRole("complementary", { name: "분석 인스펙터" });
+  await expect(inspector).toBeVisible();
+
+  // 리사이즈 분할선 핸들 확인
+  const separator = page.getByRole("separator", { name: "분석 패널 너비 조절" });
+  await expect(separator).toBeVisible();
+  await expect(separator).toHaveAttribute("aria-valuenow", "340");
+
+  // 접기 클릭
+  const collapseInspectorBtn = page.getByRole("button", { name: "분석 패널 접기" });
+  await expect(collapseInspectorBtn).toBeVisible();
+  await collapseInspectorBtn.click();
+  await expect(inspector).toBeHidden();
+  await expect(openInspectorBtn).toBeVisible();
+});

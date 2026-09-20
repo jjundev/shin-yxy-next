@@ -8,7 +8,7 @@ describe("Checklist", () => {
     render(<Checklist step={3} onSkip={() => {}} />);
     const nav = screen.getByRole("navigation", { name: "첫 실험" });
     const items = within(nav).getAllByRole("listitem");
-    expect(items.map((li) => li.textContent)).toEqual(["완료언제로 갈까", "완료무엇을 볼까", "계산하기", "4결과 읽기"]);
+    expect(items.map((li) => li.textContent)).toEqual(["완료언제로 갈까", "완료무엇을 볼까", "자동 계산", "4결과 읽기"]);
     expect(items[2]).toHaveAttribute("aria-current", "step");
     expect(items[0]).not.toHaveAttribute("aria-current");
   });

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/design/ui/tooltip";
 import { LabRail } from "./rail";
 
 /** jsdom 에는 미디어 쿼리가 없으므로 md+ 쪽(버튼이 md:hidden)은 타입·린트로만 지킨다 */
@@ -30,5 +31,17 @@ describe("LabRail", () => {
     expect(document.getElementById("what-body")).toHaveClass("hidden");
     rerender(<LabRail when={<p>언제</p>} ingredients={<p>재료 본문</p>} openIngredients />);
     expect(document.getElementById("what-body")).not.toHaveClass("hidden");
+  });
+
+  it("onCollapse 가 주어지면 접기 버튼을 누를 때 콜백이 실행된다", async () => {
+    const onCollapse = vi.fn();
+    render(
+      <TooltipProvider>
+        <LabRail when={<p>언제</p>} onCollapse={onCollapse} />
+      </TooltipProvider>,
+    );
+    const collapseBtn = screen.getByRole("button", { name: "설정 패널 접기" });
+    await userEvent.click(collapseBtn);
+    expect(onCollapse).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { HelpCircle } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/design/ui/dialog";
 import { api } from "@/api/client";
 import { strings } from "@/content/strings";
 import { label } from "@/content/labels";
@@ -57,7 +60,7 @@ export function Ingredients({ config, request, onModules, onExpand }: Ingredient
   const analog = config.modules.find((m) => m.group === "analog");
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1.5">
       <IngredientSection
         n="①"
         title={t.cycle.title}
@@ -99,39 +102,51 @@ interface IngredientSectionProps {
   children: ReactNode;
 }
 
-/** 원본 sj: 번호, 제목, 힌트, 요약, 토글, 자세히 */
+/** 원본 sj: 번호, 제목, 힌트, 요약, 토글, 헬퍼 다이얼로그 */
 function IngredientSection({ n, title, hint, summary, toggle, onOpen, children }: IngredientSectionProps) {
   const [open, setOpen] = useState(false);
   return (
-    <section className={cn("rounded-md border p-3", toggle && !toggle.on && "opacity-70")} aria-label={title}>
-      <div className="flex items-start gap-2">
+    <section className={cn("rounded-md border p-2 px-2.5", toggle && !toggle.on && "opacity-70")} aria-label={title}>
+      <div className="flex items-center gap-1.5">
         <span className="num text-xs text-muted-foreground">{n}</span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <b className="text-sm">{title}</b>
-            {toggle && (
-              <Switch aria-label={toggle.label} checked={toggle.on} disabled={toggle.disabled} onCheckedChange={toggle.onChange} className="ml-auto" />
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">{hint}</p>
-          {/* 요약 자리는 실패하면 다시 시도 버튼까지 안는다. 접혀 있어도 늘 보이는 줄이다 */}
-          <div className="mt-1 text-xs">{summary}</div>
-        </div>
+        <b className="text-xs font-semibold">{title}</b>
+        <Dialog
+          open={open}
+          onOpenChange={(next) => {
+            if (next) onOpen?.();
+            setOpen(next);
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-5 text-muted-foreground hover:text-foreground"
+              aria-label={t.expand}
+              title={`${title} ${t.expand}`}
+            >
+              <HelpCircle className="size-3" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <span className="num text-xs text-muted-foreground">{n}</span>
+                <span>{title} {t.expand}</span>
+              </DialogTitle>
+              <DialogDescription>{hint}</DialogDescription>
+            </DialogHeader>
+            <div className="mt-2 flex flex-col gap-4">
+              {children}
+            </div>
+          </DialogContent>
+        </Dialog>
+        {toggle && (
+          <Switch aria-label={toggle.label} checked={toggle.on} disabled={toggle.disabled} onCheckedChange={toggle.onChange} className="ml-auto" />
+        )}
       </div>
-      <Button
-        variant="ghost"
-        size="xs"
-        className="mt-2"
-        aria-expanded={open}
-        onClick={() => {
-          if (!open) onOpen?.();
-          setOpen((o) => !o);
-        }}
-      >
-        {open ? <ChevronDown /> : <ChevronRight />}
-        {open ? t.collapse : t.expand}
-      </Button>
-      {open && <div className="mt-2 flex flex-col gap-3 border-t pt-3">{children}</div>}
+      {/* 요약 자리는 실패하면 다시 시도 버튼까지 안는다. 늘 보이는 줄이다 */}
+      {summary && <div className="mt-0.5 text-xs text-muted-foreground pl-3.5">{summary}</div>}
     </section>
   );
 }
