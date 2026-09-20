@@ -1,14 +1,12 @@
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { HORIZON_CHOICES } from "@/content/constants";
 import { strings } from "@/content/strings";
 import type { LabConfig, RunRequest } from "@/demo/types";
 import { Button } from "@/design/ui/button";
 import { nearestWeekdayIndex, weekdaysBetween } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type { Status } from "./state";
-
-/** 원본 vj. config.horizonChoices(1~22)가 아니라 원본 화면의 네 칩 */
-const HORIZONS = [1, 5, 10, 20];
 
 export interface WhenProps {
   config: LabConfig;
@@ -67,7 +65,7 @@ export function WhenSection(p: WhenProps) {
       <div className="flex flex-col gap-1">
         <span className="text-xs text-muted-foreground">{t.horizon}</span>
         <div className="flex flex-wrap gap-1" role="group" aria-label={t.horizon}>
-          {HORIZONS.map((h) => (
+          {HORIZON_CHOICES.map((h) => (
             <Button
               key={h}
               type="button"
