@@ -103,6 +103,29 @@ describe("useLab", () => {
     expect(canSave(result.current.state!)).toBe(false);
   });
 
+  it("두 번 눌러도 한 번만 저장한다", async () => {
+    const { result } = renderHook(() => useLab());
+    await waitFor(() => expect(result.current.state).not.toBeNull());
+    await act(() => result.current.run());
+    await act(async () => {
+      void result.current.save();
+      await result.current.save();
+    });
+    expect((await api.saved()).length).toBe(4);
+    expect(toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("저장이 거부되면 알리고 저장 버튼은 열려 있다", async () => {
+    const { result } = renderHook(() => useLab());
+    await waitFor(() => expect(result.current.state).not.toBeNull());
+    await act(() => result.current.run());
+    vi.spyOn(api, "save").mockRejectedValueOnce(new ApiError(403, "데모에서는 저장하지 않는다"));
+    await act(() => result.current.save());
+    expect(toast).toHaveBeenCalledWith("데모에서는 저장하지 않는다", { id: "saved" });
+    expect(canSave(result.current.state!)).toBe(true);
+    expect((await api.saved()).length).toBe(3);
+  });
+
   it("어댑터가 거부하면 그 메시지를 오류로 든다", async () => {
     vi.spyOn(api, "run").mockRejectedValueOnce(new ApiError(404, "데모에는 없는 화면이다"));
     const { result } = renderHook(() => useLab());

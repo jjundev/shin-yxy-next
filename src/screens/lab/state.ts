@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { toast } from "sonner";
 import { api, isApiError } from "@/api/client";
 import { strings } from "@/content/strings";
@@ -151,11 +151,21 @@ export function useLab(): LabApi {
     }
   }, [request, status]);
 
+  /** 같은 결과가 두 번 저장되지 않게 하는 빗장 */
+  const saving = useRef(false);
   const save = useCallback(async () => {
     if (!state || !canSave(state) || !state.ranRequest || !state.result) return;
-    const saved = await api.save(state.ranRequest, state.result);
-    toast(strings.lab.savedToast(saved.request.asOf), { id: "saved" });
-    dispatch({ type: "saved", result: state.result });
+    if (saving.current) return;
+    saving.current = true;
+    try {
+      const saved = await api.save(state.ranRequest, state.result);
+      toast(strings.lab.savedToast(saved.request.asOf), { id: "saved" });
+      dispatch({ type: "saved", result: state.result });
+    } catch (e) {
+      toast(isApiError(e) ? e.message : strings.lab.saveFailed, { id: "saved" });
+    } finally {
+      saving.current = false;
+    }
   }, [state]);
 
   return { state, dispatch, run, save };

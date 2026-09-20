@@ -21,6 +21,7 @@ export const strings = {
     why: "왜?",
     retry: "다시 시도",
     runFailed: "실행 실패",
+    saveFailed: "저장하지 못했다",
     loading: "계산 중",
     savedToast: (asOf: string) => `저장됨 · ${asOf}`,
     when: {
