@@ -1,4 +1,7 @@
 import contrastApp from "./contrast-forecast-app.webp";
+import labLight from "./lab-full-light.webp";
+import labDark from "./lab-full-dark.webp";
+import labMobile from "./lab-mobile.webp";
 
 /** 랜딩 그림 자리의 목록. 무엇을 그려야 하는지는 docs/landing-assets.md 에 있다.
  *
@@ -23,5 +26,7 @@ export interface AssetEntry {
 export const landingAssets: Partial<Record<AssetId, AssetEntry>> = {
   // 다크판이 없다. 불투명 흰 캔버스지만 S2 가 인용틀로 감싸 의도로 읽히게 한다
   "contrast-forecast-app": { light: contrastApp },
-  // lab-full, lab-mobile 은 아직 없다 — Task 13 뒤에 Playwright 로 캡처한다
+  // 생성물이 아니라 Playwright 캡처다. 고정 시드 2026-01-15 · 20거래일 의 실험실 화면
+  "lab-full": { light: labLight, dark: labDark },
+  "lab-mobile": { light: labMobile },
 };
