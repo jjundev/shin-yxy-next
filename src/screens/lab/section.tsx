@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { ReactNode } from "react";
 import { strings } from "@/content/strings";
 import { Button } from "@/design/ui/button";
@@ -16,10 +17,11 @@ interface ResultSectionProps {
 
 /** 결과 섹션 하나: 제목 + 왜? + (뼈대 | 오류 한 줄 + 다시 시도 | 본문) */
 export function ResultSection({ title, status, error, onRetry, why, children }: ResultSectionProps) {
+  const headingId = useId();
   return (
-    <section className="flex flex-col gap-3" aria-labelledby={`sec-${title}`}>
+    <section className="flex flex-col gap-3" aria-labelledby={headingId}>
       <div className="flex items-center gap-2">
-        <h2 id={`sec-${title}`} className="text-lg font-semibold">{title}</h2>
+        <h2 id={headingId} className="text-lg font-semibold">{title}</h2>
         {why}
       </div>
       {status === "running" ? (

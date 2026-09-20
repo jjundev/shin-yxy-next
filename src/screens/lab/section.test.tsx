@@ -21,6 +21,11 @@ describe("ResultSection", () => {
     expect(screen.queryByText("결과")).not.toBeInTheDocument();
   });
 
+  it("제목에 띄어쓰기가 있어도 이름 붙은 구역이다", () => {
+    render(<ResultSection title="무엇을 뽑았나" status="idle" error={null} onRetry={() => {}} why={why}><p>결과</p></ResultSection>);
+    expect(screen.getByRole("region", { name: "무엇을 뽑았나" })).toBeInTheDocument();
+  });
+
   it("error 면 한 줄과 다시 시도", async () => {
     const onRetry = vi.fn();
     render(<ResultSection title="계산" status="error" error="데모에는 없는 화면이다" onRetry={onRetry} why={why}><p>결과</p></ResultSection>);
