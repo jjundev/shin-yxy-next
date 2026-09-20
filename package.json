@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "extract": "node scripts/extract-demo.mjs && node scripts/extract-strings.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/copy-404.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
