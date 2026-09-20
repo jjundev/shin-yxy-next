@@ -44,8 +44,11 @@
   transform: translateY(calc((1 - var(--r)) * 24px));
 }
 
-/* 3층 스택: 시장 · 업종 · 1등 종목 */
-.stack { perspective: 1400px; }
+/* 3층 스택: 시장 · 업종 · 1등 종목.
+ * translateZ 로 앞으로 나온 층은 perspective 때문에 화면에서 커진다.
+ * gap=130(캐스케이드) 기준 배율이 1.228 이라 한쪽으로 폭의 11.4% 가 삐져나온다.
+ * 그만큼을 안쪽 여백으로 미리 비워 둔다 — 없으면 맨 위 층이 화면 밖으로 잘린다 */
+.stack { perspective: 1400px; padding-inline: 12%; }
 .stack-inner {
   transform-style: preserve-3d;
   transform:
