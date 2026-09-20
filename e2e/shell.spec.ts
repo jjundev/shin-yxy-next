@@ -1,13 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("랜딩에서 시작해 로그인, 실험실, 저장소까지", async ({ page }) => {
+test("랜딩에서 시작해 로그인, 실험실, 저장소까지", async ({ page, isMobile }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "첫 실험 시작하기" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
   await expect(page).toHaveURL(/\/lab$/);
   await expect(page.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeVisible();
-  await page.getByRole("link", { name: "저장소" }).first().click();
+  await page
+    .getByRole("navigation", { name: isMobile ? "하단 탭" : "주 메뉴" })
+    .getByRole("link", { name: "저장소" })
+    .click();
   await expect(page).toHaveURL(/\/saved$/);
   await expect(page.getByRole("button", { name: "실험실에서 열기" })).toHaveCount(3);
 });
