@@ -7,6 +7,8 @@ import path from "node:path";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
+  // d3 세 모듈로 506kB → 약 540kB. 분할은 4단계 이후 원장 항목
+  build: { chunkSizeWarningLimit: 700 },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
