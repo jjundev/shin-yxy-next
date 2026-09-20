@@ -11,10 +11,10 @@ vi.mock("@/assets/landing/manifest", () => ({
 
 describe("AssetSlot", () => {
   it("파일이 없으면 점선 자리에 id 와 설명을 적는다", () => {
-    render(<AssetSlot id="hero-aurora" alt="추상 배경" ratio="16/9" />);
+    render(<AssetSlot id="contrast-forecast-app" alt="추상 배경" ratio="16/9" />);
     const slot = screen.getByRole("img", { name: "추상 배경" });
-    expect(slot).toHaveAttribute("data-asset", "hero-aurora");
-    expect(slot).toHaveTextContent("hero-aurora");
+    expect(slot).toHaveAttribute("data-asset", "contrast-forecast-app");
+    expect(slot).toHaveTextContent("contrast-forecast-app");
     expect(slot).toHaveTextContent("16/9");
   });
 
@@ -26,9 +26,9 @@ describe("AssetSlot", () => {
   });
 
   it("decorative 면 접근성 트리에서 빠진다", () => {
-    const { container } = render(<AssetSlot id="hero-aurora" alt="추상 배경" ratio="16/9" decorative />);
+    const { container } = render(<AssetSlot id="contrast-forecast-app" alt="추상 배경" ratio="16/9" decorative />);
     expect(screen.queryByRole("img")).toBeNull();
-    expect(container.querySelector('[data-asset="hero-aurora"]')).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector('[data-asset="contrast-forecast-app"]')).toHaveAttribute("aria-hidden", "true");
   });
 
   it("다크 파일이 따로 있으면 둘을 넣고 클래스로 바꾼다 — 접근 가능한 그림은 하나", () => {

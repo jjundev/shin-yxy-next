@@ -1,4 +1,4 @@
-import { Moon, Sun, Monitor, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
 import { Button } from "@/design/ui/button";
 import {
@@ -10,19 +10,11 @@ import { cn } from "@/lib/utils";
 import { setLabIntent } from "./lab-intent";
 import { clearOnboarded } from "./onboarded";
 import { useSavedCount } from "./saved-count";
-import { useTheme, type Theme } from "./theme";
-
-const THEME_ORDER: Theme[] = ["light", "dark", "system"];
+import { ThemeToggle } from "./theme-toggle";
 
 export function TopBar() {
-  const { theme, setTheme } = useTheme();
   const savedCount = useSavedCount();
   const navigate = useNavigate();
-  const Icon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
-
-  function cycleTheme() {
-    setTheme(THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length]);
-  }
 
   /** 상위 스펙 5.3: 플래그를 지우고 실험실을 다시 연다. 이미 /lab 이어도 location.key 가 바뀌어 useLab 이 다시 부팅한다 */
   function replayOnboarding() {
@@ -60,9 +52,7 @@ export function TopBar() {
             </TooltipTrigger>
             <TooltipContent>{strings.demoBadgeHint}</TooltipContent>
           </Tooltip>
-          <Button variant="ghost" size="icon" aria-label={strings.theme[theme]} onClick={cycleTheme}>
-            <Icon className="size-4" />
-          </Button>
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label={strings.nav.menu}><MoreHorizontal className="size-4" /></Button>

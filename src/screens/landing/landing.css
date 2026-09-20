@@ -2,6 +2,26 @@
  * @apply 를 쓰지 않는다 — Tailwind v4 에서 별도 CSS 파일의 @apply 는 @reference 를 요구한다.
  * 모든 규칙은 --p 가 없을 때 1(최종 상태)로 떨어지게 기본값을 준다. */
 
+/* 히어로 배경은 글이 앉는 왼쪽에서 깎아 낸다. 글로우 중심이 x 65% 라 손실이 거의 없고,
+ * 흐린 글 대비가 4.44:1 → 4.76:1 로 올라간다 (measured, hero-aurora-light.webp) */
+.hero-wash {
+  -webkit-mask-image: linear-gradient(to right, transparent 45%, black 75%);
+  mask-image: linear-gradient(to right, transparent 45%, black 75%);
+}
+/* 좁은 화면은 한 열이라 글이 가로 전체를 쓴다. 위아래로 깎는다 */
+@media (max-width: 1023px) {
+  .hero-wash {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 40%, black 70%);
+    mask-image: linear-gradient(to bottom, transparent 40%, black 70%);
+  }
+}
+
+/* 페이지 전체 진행 바. --p 는 랜딩 루트가 span:"cover" 로 쓴다 */
+.progress-bar { transform: scaleX(var(--p, 0)); }
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar { display: none; }
+}
+
 /* 등장: 아래에서 떠오르며 또렷해진다. --d 로 줄마다 늦춘다 */
 .rise {
   --r: clamp(0, var(--p, 1) * 2.4 - var(--d, 0), 1);
