@@ -42,12 +42,14 @@ describe("landing copy", () => {
     expect(line).toContain("비율");
   });
 
-  it("섹션 리드 셋은 안내 카드 본문의 앞부분과 정확히 같다", () => {
-    // 뒤에 붙은 "왼쪽에서 …해 보라" 만 뺀 것이다. 안내 문구가 바뀌면 여기서 걸린다
-    const steps = strings.lab.guide.steps;
-    expect(steps[0].body.startsWith(landing.moment.lead)).toBe(true);
-    expect(steps[1].body.startsWith(landing.gather.lead)).toBe(true);
-    expect(steps[2].body.startsWith(landing.roll.lead)).toBe(true);
+  it("섹션 리드 셋이 토스 톤의 설명 문구를 갖는다", () => {
+    expect(landing.moment.lead).toBe("기준 시점은 예측을 시작하는 날이고, 확인 기간은 실제 결과를 확인할 때까지의 기간이에요.");
+    expect(landing.gather.lead).toBe("미래 정보는 미리 보지 않아요. 기준 시점 전에 알려진 일정과 뉴스, 유사 국면 데이터만 모아요.");
+    expect(landing.roll.lead).toContain("시뮬레이션해 보고");
+  });
+
+  it("한계 섹션 제목은 '꼭 확인해 주세요'다", () => {
+    expect(landing.limits.title).toBe("꼭 확인해 주세요");
   });
 
   it("두 시점 섹션의 숫자는 공용 상수에서 온다", () => {

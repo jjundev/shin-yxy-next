@@ -7,7 +7,7 @@ import { SummaryLine } from "./summary-line";
 import { summaryText } from "./summary-text";
 
 const FIXED =
-  "업종 11개 중 3개(의료 · 금융 · 필수소비재)를 뽑아 1등 종목으로 1개월 뒤 +1.2%를 예상했다. 실제는 +0.7%, 같은 기간 시장은 −0.6% — 시장보다 +1.3%p 더 벌었다 (왕복 거래비용 −0.3%p를 뺀 값). 예상 성공.";
+  "업종 11개 중 3개(의료 · 금융 · 필수소비재)를 뽑아 1등 종목으로 1개월 뒤 +1.2%를 예상했다. 실제는 +0.7%, 같은 기간 시장은 −0.6% — 시장보다 +1.3%p 더 벌었어요 (왕복 거래비용 −0.3%p를 뺀 값). 예상 성공.";
 
 describe("SummaryLine", () => {
   const result = gen.runLab(defaultRequest());
@@ -20,13 +20,13 @@ describe("SummaryLine", () => {
 
   it("실패면 못 벌었다 · 예상 실패", () => {
     const r = gen.runLab({ ...defaultRequest(), asOf: "2025-04-15" });
-    expect(summaryText(r)).toContain("못 벌었다");
+    expect(summaryText(r)).toContain("덜 벌었어요");
     expect(summaryText(r)).toMatch(/예상 실패\.$/);
   });
 
   it("기간이 안 지났으면 실제 성적이 없다고 말한다", () => {
     const r: RunResult = { ...result, avgReturn: null, benchReturn: null, horizonReached: false };
-    expect(summaryText(r)).toMatch(/를 예상했다\. 아직 1개월이 안 지나 실제 성적은 없다\.$/);
+    expect(summaryText(r)).toMatch(/를 예상했다\. 아직 1개월이 지나지 않아 실제 결과가 나오지 않았어요\.$/);
   });
 
   it("뽑은 게 없으면 시장 예상만 말한다", () => {

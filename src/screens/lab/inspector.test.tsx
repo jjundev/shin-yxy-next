@@ -28,7 +28,7 @@ describe("LabInspector", () => {
         focus={null}
       />,
     );
-    expect(screen.getByText(/계산하기를 실행하면 선택된 대상의 상세 기여도/)).toBeInTheDocument();
+    expect(screen.getByText(/‘계산하기’를 누르면 선택한 대상의 상세 기여도/)).toBeInTheDocument();
   });
 
   it("결과가 있을 때 기본 선택된 업종의 수익률과 기여도 재료를 표시한다", () => {
@@ -59,11 +59,11 @@ describe("LabInspector", () => {
     expect(screen.getByRole("button", { name: "계산" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "차트" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "판정" })).toBeInTheDocument();
-    expect(screen.getByText("모은다")).toBeInTheDocument();
+    expect(screen.getByText("재료 모으기")).toBeInTheDocument();
 
     // 차트 해설 탭 클릭
     await userEvent.click(screen.getByRole("button", { name: "차트" }));
-    expect(screen.getByText(/굵은 선이 집중한 대상/)).toBeInTheDocument();
+    expect(screen.getByText(/굵은 선은 선택한 대상/)).toBeInTheDocument();
   });
 
   it("다른 업종 바로보기 클릭 시 onFocus 가 호출된다", async () => {

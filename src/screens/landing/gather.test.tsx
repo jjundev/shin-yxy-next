@@ -25,7 +25,7 @@ describe("Gather", () => {
     expect(late.querySelectorAll('tr[data-late="false"]').length).toBeGreaterThan(0);
   });
 
-  it("흐린 줄에는 안 썼다는 딱지와 설명이 붙는다", async () => {
+  it("흐린 줄에는 계산 제외 딱지와 설명이 붙는다", async () => {
     render(<Gather />);
     await screen.findByRole("table", { name: landing.gather.lateTitle });
     expect(screen.getAllByText(landing.gather.lateBadge).length).toBeGreaterThan(0);

@@ -44,7 +44,7 @@ describe("SavedScreen", () => {
   it("불러오기가 거부되면 한 줄과 다시 시도, 다시 시도하면 카드가 나온다", async () => {
     vi.spyOn(api, "saved").mockRejectedValueOnce(new Error("x"));
     mount();
-    expect(await screen.findByText("저장소를 불러오지 못했다.")).toBeInTheDocument();
+    expect(await screen.findByText("저장한 실험을 불러오지 못했어요.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "다시 시도" }));
     expect(await screen.findAllByRole("listitem")).toHaveLength(3);
   });

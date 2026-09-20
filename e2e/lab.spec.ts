@@ -10,8 +10,6 @@ async function enter(page: Page) {
 
 test("계산 → 요약 문장 → 저장 → 저장소 개수", async ({ page, isMobile }) => {
   await enter(page);
-  await expect(page.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeVisible();
-  await page.getByRole("button", { name: "계산하기" }).click();
   await expect(page.getByText(/업종 11개 중 3개\(의료 · 금융 · 필수소비재\)를 뽑아/)).toBeVisible();
   await expect(page.getByRole("table")).toContainText("KB금융");
   await expect(page.getByText("방향 2/3 · 범위 3/3")).toBeVisible();
@@ -26,23 +24,18 @@ test("계산 → 요약 문장 → 저장 → 저장소 개수", async ({ page, 
 
 test("왜? 시트가 열리고 닫힌다", async ({ page }) => {
   await enter(page);
-  await page.getByRole("button", { name: "계산하기" }).click();
   await page.getByRole("button", { name: "왜?" }).first().click();
   const sheet = page.getByRole("dialog", { name: "계산" });
   await expect(sheet).toBeVisible();
-  await expect(sheet.getByText("모은다", { exact: true })).toBeVisible();
+  await expect(sheet.getByText("재료 모으기", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(sheet).toBeHidden();
 });
 
-test("설정을 바꾸면 dirty 한 줄, 다시 계산하면 사라진다", async ({ page }) => {
+test("설정을 바꾸면 자동 재계산된다", async ({ page }) => {
   await enter(page);
-  await page.getByRole("button", { name: "계산하기" }).click();
   await expect(page.getByText(/업종 11개 중/)).toBeVisible();
   await page.getByRole("button", { name: "5거래일" }).click();
-  await expect(page.getByText("바꾼 세팅을 먼저 계산하세요")).toBeVisible();
-  await page.getByRole("button", { name: "계산하기" }).click();
-  await expect(page.getByText("바꾼 세팅을 먼저 계산하세요")).toBeHidden();
   await expect(page.getByRole("region", { name: "계산" }).getByText(/1주 뒤/)).toBeVisible();
 });
 
@@ -54,7 +47,6 @@ test("모바일: 무엇으로는 접혀 있고, 표에서 두 열이 숨는다",
   await expect(page.getByRole("region", { name: "주기" })).toBeHidden();
   await toggle.click();
   await expect(page.getByRole("region", { name: "주기" })).toBeVisible();
-  await page.getByRole("button", { name: "계산하기" }).click();
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("columnheader", { name: /예상 흐름/ })).toBeHidden();
   await expect(page.getByRole("columnheader", { name: "상승 · 횡보 · 하락" })).toBeHidden();

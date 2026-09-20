@@ -5,7 +5,6 @@ test("건너뛰기 → 계산 → 저장 → 저장소에서 열기 → 새로 �
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
   await page.getByRole("button", { name: "건너뛰기" }).click();
 
-  await page.getByRole("button", { name: "계산하기" }).click();
   await expect(page.getByText(/업종 11개 중 3개\(의료 · 금융 · 필수소비재\)/)).toBeVisible();
   await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect(page.getByText("저장됨 · 2026-01-15")).toBeVisible();
@@ -26,14 +25,13 @@ test("건너뛰기 → 계산 → 저장 → 저장소에서 열기 → 새로 �
   await first.getByRole("button", { name: "실험실에서 열기" }).click();
   await expect(page).toHaveURL(/\/lab$/);
   const status = page.getByRole("status", { name: "설정 상태" });
-  await expect(status).toHaveText("저장한 실험을 보는 중 · 2026-01-15");
+  await expect(status).toHaveText("저장한 실험을 보고 있어요 · 2026-01-15");
   await expect(page.getByRole("button", { name: "저장됨" })).toBeDisabled();
   await expect(page.getByText(/업종 11개 중 3개\(의료 · 금융 · 필수소비재\)/)).toBeVisible();
   await expect(page.getByRole("table")).toContainText("KB금융");
 
-  await page.getByRole("button", { name: "새로 계산" }).click();
-  await expect(status).toHaveText("");
-  await expect(page.getByRole("button", { name: "계산하기" })).toBeVisible();
+  await page.getByRole("button", { name: "5거래일" }).click();
+  await expect(status).not.toHaveText(/저장한 실험을 보고 있어요/);
   await expect(page.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
 });
 
@@ -41,7 +39,6 @@ test("새로고침하면 저장 항목은 시드 셋으로 돌아간다", async 
   await page.addInitScript(() => localStorage.setItem("shin.onboarded", "1"));
   await page.goto("/login");
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
-  await page.getByRole("button", { name: "계산하기" }).click();
   await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect(page.getByText("저장됨 · 2026-01-15")).toBeVisible();
   // 저장은 메모리에만 있다. page.goto 는 문서를 새로 읽어 시드로 돌아가므로 화면 안에서 옮긴다

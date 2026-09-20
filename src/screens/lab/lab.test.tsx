@@ -173,7 +173,7 @@ describe("LabScreen 안내 모드", () => {
   it("첫 방문: 체크리스트와 1/4 카드만, 빈 결과 문장은 없다, 재료가 흐리다", async () => {
     mount();
     expect(await screen.findByRole("navigation", { name: "첫 실험" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: /1\/4 · 예측 시점과 채점 시점이 다릅니다/ })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /1\/4 · 예측하는 날과 채점하는 날이 달라요/ })).toBeInTheDocument();
     expect(screen.queryByText("계산하기를 누르면 결과가 여기에 나옵니다.")).not.toBeInTheDocument();
     expect(document.getElementById("what-body")!.closest("section")).toHaveClass("opacity-50");
   });
@@ -249,7 +249,7 @@ describe("LabScreen 저장한 실험 보기", () => {
     mount();
     expect(await screen.findByRole("heading", { name: "맞았나" })).toBeInTheDocument();
     expect(runSpy).not.toHaveBeenCalled();
-    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보는 중 · 2025-10-15");
+    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보고 있어요 · 2025-10-15");
     expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
     expect(screen.queryByRole("navigation", { name: "첫 실험" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "하루 전" }));

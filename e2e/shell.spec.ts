@@ -10,7 +10,7 @@ test("랜딩에서 시작해 로그인, 실험실, 저장소까지", async ({ pa
   await expect(page).toHaveURL(/\/login$/);
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
   await expect(page).toHaveURL(/\/lab$/);
-  await expect(page.getByText("계산하기를 누르면 결과가 여기에 나옵니다.")).toBeVisible();
+  await expect(page.getByText(/업종 11개 중 3개/)).toBeVisible();
   await page
     .getByRole("navigation", { name: isMobile ? "하단 탭" : "주 메뉴" })
     .getByRole("link", { name: "저장소" })
@@ -24,7 +24,7 @@ test("없는 경로는 실험실로 보내고 토스트를 띄운다", async ({ 
   await page.getByRole("button", { name: "데모로 들어가기" }).click();
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/lab$/);
-  await expect(page.getByText("그 화면은 이 목업에 없어 실험실로 왔습니다.")).toBeVisible();
+  await expect(page.getByText("찾으시는 화면이 없어 실험실로 이동했어요.")).toBeVisible();
 });
 
 test("테마 토글은 .dark 를 붙였다 뗀다", async ({ page }) => {

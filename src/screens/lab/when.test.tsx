@@ -47,7 +47,7 @@ describe("WhenSection", () => {
 describe("WhenSection 저장한 실험 보기", () => {
   it("보는 중이면 상태 줄, 저장은 저장됨으로 잠김", () => {
     render(<WhenSection {...plain} hasResult viewingSaved saved />);
-    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보는 중 · 2026-01-15");
+    expect(screen.getByRole("status", { name: "설정 상태" })).toHaveTextContent("저장한 실험을 보고 있어요 · 2026-01-15");
     expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
   });
   it("계산 중이면 계산 중 상태를 표시한다", () => {

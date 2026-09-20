@@ -25,7 +25,7 @@ describe("Ingredients", () => {
     render(<Ingredients config={config} request={defaultRequest()} onModules={() => {}} />);
     expect(await screen.findByText("일정 3건 · 정책 등 · 계절 끔")).toBeInTheDocument();
     expect(await screen.findByText("뉴스 판독 51건 · 시장 17 · 업종 37")).toBeInTheDocument();
-    expect(screen.getByText("이 서버에는 유사 국면 재료가 없다")).toBeInTheDocument();
+    expect(screen.getByText("이 환경에는 유사 국면 데이터가 없어요.")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "주기 재료" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "유사 국면" })).toBeDisabled();
   });
@@ -36,7 +36,7 @@ describe("Ingredients", () => {
     const cycle = screen.getByRole("region", { name: "주기" });
     await userEvent.click(within(cycle).getByRole("button", { name: "자세히" }));
     expect(await screen.findByText("금융 정책 발표 예정")).toBeInTheDocument();
-    expect(screen.getByText(/기준일 뒤에 알려짐/)).toBeInTheDocument();
+    expect(screen.getByText(/기준일 이후 등록/)).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "월별 계절성" })).not.toBeChecked();
     await userEvent.click(screen.getByRole("switch", { name: "일정 폭 (업계 시황)" }));
     expect(onModules).toHaveBeenCalledWith(["cal"], false);
@@ -59,7 +59,7 @@ describe("Ingredients", () => {
     render(<Ingredients config={config} request={defaultRequest()} onModules={() => {}} />);
     const impact = screen.getByRole("region", { name: "뉴스 영향" });
     await userEvent.click(within(impact).getByRole("button", { name: "자세히" }));
-    expect(screen.getByText("끔 — 계산엔 안 들어갔다.")).toBeInTheDocument();
+    expect(screen.getByText("끔 · 계산 제외")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "뉴스 방향" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "변동성지수" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "서킷브레이커 ±20%" })).toBeChecked();
@@ -70,14 +70,14 @@ describe("Ingredients", () => {
     const impact = screen.getByRole("region", { name: "뉴스 영향" });
     await userEvent.click(within(impact).getByRole("button", { name: "자세히" }));
     expect(screen.getByRole("switch", { name: "변동성지수" })).toBeDisabled();
-    expect(screen.getByText("데이터가 2016-02-01 부터라 이 기준일엔 못 쓴다")).toBeInTheDocument();
+    expect(screen.getByText("데이터가 2016-02-01부터 있어서 이 기준일에는 쓸 수 없어요")).toBeInTheDocument();
   });
 
   it("주기를 꺼 둔 채 일정이 실패해도 다시 시도는 표 자리에 남는다", async () => {
     vi.spyOn(api, "events").mockRejectedValueOnce(new ApiError(404, "없다"));
     render(<Ingredients config={config} request={cycleOffRequest()} onModules={() => {}} />);
     const cycle = screen.getByRole("region", { name: "주기" });
-    expect(within(cycle).getByText("끔 — 일정 안 봄")).toBeInTheDocument();
+    expect(within(cycle).getByText("끔 · 일정 제외")).toBeInTheDocument();
     await userEvent.click(within(cycle).getByRole("button", { name: "자세히" }));
     await userEvent.click(await screen.findByRole("button", { name: "다시 시도" }));
     expect(await screen.findByText("금융 정책 발표 예정")).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("Ingredients", () => {
     vi.spyOn(api, "events").mockRejectedValueOnce(new ApiError(404, "없다"));
     render(<Ingredients config={config} request={defaultRequest()} onModules={() => {}} />);
     const cycle = screen.getByRole("region", { name: "주기" });
-    expect(await within(cycle).findByText("일정을 불러오지 못했다.")).toBeInTheDocument();
+    expect(await within(cycle).findByText("일정을 불러오지 못했어요.")).toBeInTheDocument();
     await userEvent.click(within(cycle).getByRole("button", { name: "자세히" }));
     expect(screen.getAllByRole("button", { name: "다시 시도" })).toHaveLength(1);
   });
@@ -96,7 +96,7 @@ describe("Ingredients", () => {
     vi.spyOn(api, "news").mockRejectedValueOnce(new ApiError(404, "없다"));
     render(<Ingredients config={config} request={defaultRequest()} onModules={() => {}} />);
     const news = screen.getByRole("region", { name: "뉴스" });
-    expect(await within(news).findByText("뉴스를 불러오지 못했다.")).toBeInTheDocument();
+    expect(await within(news).findByText("뉴스를 불러오지 못했어요.")).toBeInTheDocument();
     await userEvent.click(within(news).getByRole("button", { name: "다시 시도" }));
     expect(await within(news).findByText(/뉴스 판독 51건/)).toBeInTheDocument();
   });

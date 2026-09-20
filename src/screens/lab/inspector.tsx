@@ -129,7 +129,7 @@ export function LabInspector({
         <div className="flex flex-col gap-4">
           {!result || !currentSubject ? (
             <div className="rounded-md border border-dashed p-6 text-center text-xs text-muted-foreground">
-              계산하기를 실행하면 선택된 대상의 상세 기여도와 분석 지표가 여기에 표시됩니다.
+              ‘계산하기’를 누르면 선택한 대상의 상세 기여도와 분석 지표를 볼 수 있어요.
             </div>
           ) : (
             <>
@@ -209,7 +209,7 @@ export function LabInspector({
                   </ul>
                 ) : (
                   <p className="rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
-                    {currentSubject.excludedReason ?? "영향을 준 주요 재료가 없습니다."}
+                    {currentSubject.excludedReason ?? "영향을 준 주요 재료가 없어요."}
                   </p>
                 )}
               </div>
@@ -218,7 +218,7 @@ export function LabInspector({
               {result.round1.estimates.length > 0 && onFocus && (
                 <div className="mt-1 flex flex-col gap-1.5 border-t pt-3">
                   <span className="text-[11px] font-medium text-muted-foreground">
-                    선택된 다른 업종 바로보기
+                    선택된 다른 업종 보기
                   </span>
                   <div className="flex flex-wrap gap-1">
                     {result.round1.estimates
