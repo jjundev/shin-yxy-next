@@ -12,6 +12,7 @@ export default defineConfig({
   build: { chunkSizeWarningLimit: 700 },
   test: {
     environment: "jsdom",
+    pool: "threads",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
   },
