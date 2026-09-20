@@ -249,9 +249,11 @@ describe("useLab", () => {
     await waitFor(() => expect(result.current.state).not.toBeNull());
     await act(() => result.current.run());
     expect(result.current.state?.result).not.toBeNull();
-    // 의도 없이 key 만 바뀌면 그대로
+    // 의도 없이 key 만 바뀌면 그대로. 다시 부팅했다면 result 가 딴 객체가 된다
+    const ran = result.current.state?.result;
     rerender({ key: "k2" });
-    await waitFor(() => expect(result.current.state?.result).not.toBeNull());
+    await act(async () => {});
+    expect(result.current.state?.result).toBe(ran);
     setLabIntent({ kind: "guide" });
     rerender({ key: "k3" });
     await waitFor(() => expect(result.current.state?.guide).toBe(1));
