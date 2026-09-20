@@ -26,5 +26,7 @@ export const routes: RouteObject[] = [
 ];
 
 export function createAppRouter(initialEntries?: string[]) {
-  return initialEntries ? createMemoryRouter(routes, { initialEntries }) : createBrowserRouter(routes);
+  return initialEntries
+    ? createMemoryRouter(routes, { initialEntries })
+    : createBrowserRouter(routes, { basename: import.meta.env.BASE_URL });
 }
